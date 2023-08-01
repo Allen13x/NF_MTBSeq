@@ -273,7 +273,6 @@ memory '20GB'
 publishDir 'OUTPUT', mode: "copy", pattern: "DELETIONS.tab"
 input:
 	path(del)
-	path(xxx)
 output:
 	path("DELETIONS.tab")
 script:
@@ -315,7 +314,6 @@ memory '20GB'
 publishDir 'OUTPUT', mode: "copy", pattern: "GB_cov.csv"
 input:
 	path(cov)
-	path(xxx)
 output:
 	path("GB_cov.csv")
 script:

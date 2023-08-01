@@ -72,9 +72,12 @@ map_strain=STATS.out.stats.join(STRAIN.out.strain,by:0).map{id,file1,file2 -> tu
 old_map=channel.fromPath('OUTPUT/Mapping_Classification.tab')
 map_strain=map_strain.concat(old_map).collect()
 MAP_STRAIN(map_strain)
+delly=DEL.out.map{id,file -> file}
 old_del=channel.fromPath('OUTPUT/DELETIONS.tab')
-OUT_DEL(DEL.out.map{id,file -> file}.collect(),old_del)
+delly=delly.concat(old_del).collect()
+OUT_DEL(delly)
+depth=DEPTH.out.map{id,file->file}
 old_cov=channel.fromPath('OUTPUT/GB_cov.csv')
-OUT_DEPTH(DEPTH.out.map{id,file->file}.collect(),old_cov)
-
+depth=depth.concat(old_cov).collect()
+OUT_DEPTH(depth)
 }
