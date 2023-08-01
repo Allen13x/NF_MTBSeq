@@ -1,0 +1,10 @@
+BootStrap: docker
+From: continuumio/miniconda3
+
+%post
+	apt update
+	apt install -y gawk
+	/opt/conda/bin/conda install -c bioconda -c conda-forge mtbseq  r-essentials bioconductor-biostrings r-tidyverse delly mosdepth python bcftools
+	pip install pandas	
+%labels
+	Author Allen13x
