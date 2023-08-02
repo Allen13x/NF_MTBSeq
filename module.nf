@@ -4,7 +4,6 @@
 
 process COLLECT_READS {
 cpus 1
-executor = 'local'
 tag "$replicateId"
 input:
 	tuple val(replicateId), path(reads) 
@@ -16,7 +15,7 @@ output:
 	tuple val(replicateId), path('*150bp_R1.fastq.gz'), path('*150bp_R2.fastq.gz')
 script:
 """
-for i in *_R2*.fastq.gz; do basename=`ls \$i | cut -d "_" -f 1`; mv \$i \${basename}_ILL-Q${minbqual}-RP${r}-PH${minphred20}_150bp_R2.fastq.gz; done
+for i in *_R2*.fastq.gz; do basename=`ls \$i | cut -d "_" -f 1`;mv \$i \${basename}_ILL-Q${minbqual}-RP${r}-PH${minphred20}_150bp_R2.fastq.gz; done
 for i in *_R1*.fastq.gz; do basename=`ls \$i | cut -d "_" -f 1`; mv \$i \${basename}_ILL-Q${minbqual}-RP${r}-PH${minphred20}_150bp_R1.fastq.gz; done
 """
 
@@ -411,7 +410,368 @@ for (i in l){
 
   a %>%
 write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
+
+}
+"""
 }
 
+
+process MUT_GATHER{
+cpus 1
+memory "10GB"
+input:
+        path(tabs)
+output:
+        path('all_cf1N.tab')
+script:
 """
+#!/usr/bin/env Rscript
+library(tidyverse)
+files <- list.files(path = ".", pattern = "corrected.tab")
+lapply(files, function(x){
+    read_delim(x,delim='\\t') %>%
+    mutate(File=str_remove_all(x,'_.*'))%>%
+    relocate(File)
+})->l
+bind_rows(l)%>%
+write_delim('all_cf1N.tab',delim='\\t',col_names = F)
+"""
+}
+
+
+
+process PHARMA {
+cpus 1
+memory "10GB"
+publishDir "Called", mode: 'copy', pattern: 'pharma_gene*'
+publishDir "OUTPUT", mode: 'copy', pattern: '*format*'
+input:
+        path (tabs)
+        val (thresholds)
+        path (genes)
+
+output:
+        path("pharma_gene*"), emit:pgene
+        path("*format*"), emit:format
+script:
+"""
+#!/usr/bin/env Rscript
+library(tidyverse)
+
+t=${thresholds}
+
+# Read in the data
+#read all the file that ends with "corrected.tab"
+files <- list.files(path = ".", pattern = "corrected.tab")
+
+lapply(files, function(x){
+    read_delim(x,delim='\\t') %>%
+    filter(Freq>=t) %>%
+    mutate(ID=str_remove_all(x,'_.*'))
+})->l
+
+genes<-read_delim('gene_drug.csv',col_names=c('Gene_name','Start','Stop','Gene','S'))
+
+#from genes get a vector containing all the numbers in the intervavals between Start and Stop
+
+lapply(genes\$Start,function(x){
+    seq(x,genes\$Stop[genes\$Start==x][1])
+})->l2
+
+unlist(l2)->gene_intervals
+
+
+
+bind_rows(l) %>%
+    filter(`#Pos` %in% gene_intervals) %>%
+    relocate(ID)->p
+
+
+genes %>% 
+  group_by(Gene_name) %>% 
+  mutate(i=str_c(seq(Start,Stop),collapse=',')) %>% 
+  separate_rows(i,sep=',') %>% 
+  transmute(Name=Gene_name,
+            Range=ifelse(Start>Stop,
+                         paste('r[',Stop,'-',Start,']',sep=''),
+                         paste('r[',Start,'-',Stop,']',sep='')),
+            Locus=Gene,`#Pos`=as.numeric(i),
+            Start=ifelse(S=='rev',max(Start,Stop),min(Start,Stop))) %>% 
+  right_join(p) %>% 
+  select(Name,Range,Locus,`#Pos`,ID,Start,Freq,Ref,Allel,Type,Subst) %>%
+  mutate(
+    Type=ifelse(Type=='SNP',Type,paste('__',Type,sep='')),
+    Mut=case_when(str_detect(Name,'_ups')~paste0(Ref,'-',abs(`#Pos`-Start),Allel,'-',`#Pos`),
+                       (Subst!=' ')~str_remove(Subst,' .*'),
+                  (Type=='SNP')~paste0(`#Pos`,'_',Ref,'>',Allel,'_',Type),
+                  (Type!='SNP')~paste0(`#Pos`,'_',str_to_upper(Type))),
+    Mut=ifelse(Freq<75,paste0(Mut,':',Freq),Mut)) %>% 
+  ungroup() %>% 
+  select(Name,Range,LocusName=Locus,ID,Mut) %>% 
+  group_by(Name,Range,LocusName,ID) %>% 
+  summarise(Mut=str_c(Mut,collapse=' ')) %>%ungroup() %>%  
+  select(Name,ID,Mut) %>% 
+  spread(Name,Mut) %>% rename(Name=ID)->tail
+
+
+genes %>% 
+  transmute(Name=Gene_name,
+            Range=ifelse(Start>Stop,
+                         paste('r[',Stop,'-',Start,']',sep=''),
+                         paste('r[',Start,'-',Stop,']',sep='')),
+            LocusName=Gene)->head
+
+
+as.data.frame(t(head[,-1]))->h
+colnames(h)<-head\$Name
+h %>% rownames_to_column('Name') %>% as_tibble()->head
+
+
+
+bind_rows(list(head,tail)) %>% 
+  write_delim(paste0('pharma_gene_format_',t,'.tab'),delim='\\t',na = '')
+
+p%>%
+write_delim('pharma_gene.tab',delim='\\t',col_names=F)
+
+
+"""
+}
+
+
+
+process  WHO {
+cpus 1
+memory "10GB"
+input:
+        path(tab)
+        path(head)
+        path(WHO)
+output:
+        path('WHO_raw.csv')
+script:
+"""
+#!/usr/bin/env python
+# coding: utf-8
+
+import pandas as pd
+import numpy as np
+from functools import reduce
+
+
+#Check wheter a subs is Syn
+def syn(s):
+    import re
+    temp = re.compile("([a-zA-Z]+)([0-9]+)([a-zA-Z]+)")
+    res = temp.match(s).groups()
+    if res[0] == res[2]:
+        print(s)
+
+#Check wheter a subs is NoSyn
+def nsyn(s):
+    import re
+    temp = re.compile("([a-zA-Z]+)([0-9]+)([a-zA-Z]+)")
+    res = temp.match(s).groups()
+    if res[0] != res[2]:
+        print(s)
+        
+def nsyn2(s):
+    import re
+    temp = re.compile("([a-zA-Z]+)([0-9]+)([a-zA-Z]+)")
+    res1 = temp.match(s).group(1)
+    res2 = temp.match(s).group(2)
+    res3 = temp.match(s).group(3)
+    if res1 != res3:
+        print(s)
+        
+# Check whether there is STOP codon       
+def nsyn3(s):
+    import re
+    temp = re.compile("([a-zA-Z_]+)([0-9]+)([a-zA-Z_]+)")
+    #check whether s IS NOT white space
+    if s and not s.isspace():
+        res1 = temp.match(s).group(1)
+        res2 = temp.match(s).group(2)
+        res3 = temp.match(s).group(3)
+        if res1 != res3:
+            return(True)
+        else:
+            return(False)
+    else:
+        return(False)
+
+# remove content between () in s
+def cleanvar(s):
+    import re
+    return(re.sub(r"\\([^()]*\\)", "", s))  
+
+# convert tab to space
+def tab2space(s):
+    import re
+    return(s.replace('\\t', ' '))
+
+def removespace(s):
+    import re
+    return(s.replace(' ', ''))
+
+def remove_(s):
+    S=s.split('_')
+    return(S[0])
+
+def remove1_(s):
+    S=s.split('_')
+    return(S[1])
+
+def first(s):
+    return(s[0])
+
+def last(s):
+    return(s[-1])
+
+def one2tree(s):
+    from Bio.PDB.Polypeptide import one_to_three
+    s=s.rstrip()
+    if s.isupper() and not s.isnumeric() :
+        try:
+            return(one_to_three(s))
+        except:
+            return(s)
+    else:
+        return(s)
+    
+def codon(s):
+    import re
+    temp = re.findall(r'\\d+', s)
+    return(temp[0])
+
+
+myfile = open("head", "r")
+head1 = myfile.read()
+head_list1=head1.split('\\t')
+head_list1[16]=head_list1[16].strip()
+head_list1.insert(0,"File")
+all=pd.read_csv('all_cf1N.tab',sep='\\t',header=None,names=head_list1)
+
+
+#clean substitution and add a new column SubstClean
+all['SubstClean']=all.Subst.apply(cleanvar)
+all['SubstClean2'] = all.SubstClean.apply(removespace)
+#all['ID']=all.File.apply(remove_)
+all['ID']=all.File
+#all['NSYN'] = all.SubstClean2.apply(nsyn3)
+all.rename({'#Pos': 'Genome position'}, axis=1,inplace=True)
+all['genome_index']=all['Genome position'].astype(int)
+all.genome_index.astype(int)
+whoG=pd.read_csv('${WHO}',sep='\\t')
+
+whoG.genome_index=whoG.genome_index.astype(str).str.split(',')
+whoG = whoG.explode('genome_index').reset_index(drop=True)
+whoG.genome_index=whoG.genome_index.astype(int)
+whoG['Allel']=whoG['final_annotation.AlternativeNucleotide'].str.upper()
+whoG['Ref']=whoG['final_annotation.ReferenceNucleotide'].str.upper()
+whoG['common_name']=whoG['final_annotation.Gene'] + '_' + whoG['final_annotation.TentativeHGVSNucleotidicAnnotation']
+
+all_whoG=pd.merge(all,whoG,on=['genome_index','Allel','Ref'])
+
+all_whoG.sort_values('File',inplace=True)
+
+
+all_whoG.filter(regex=r'(File|_Conf_Grade)')
+drugs_conf=all_whoG.filter(regex=r'(_Conf_Grade)').columns
+# create array of drugs
+drugs=drugs_conf.str.split('_').str[0]
+
+cutoff=10
+A = {}
+Asubst = {}
+Asubst1 = {}
+Asubst5 = {}
+Ali=[]
+Alisubst=[]
+Alisubst5=[]
+Alisubst1=[]
+for i in drugs_conf:
+    t = i.split('_')[0]
+    A[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File',i]]
+    Asubst[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq',i]]
+    Asubst1[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim') | (all_whoG[i]=='3) Uncertain significance')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq',i]]
+    Asubst5[t] = all_whoG[(all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq',i]]
+    Ali.append(A[t])
+    Alisubst.append(Asubst[t])
+    Alisubst5.append(Asubst5[t])
+    Alisubst1.append(Asubst1[t])
+
+
+A5=pd.concat(Alisubst5)
+
+A5.fillna(0,inplace=True)
+
+
+#A5a=A5.drop('Freq',axis=1).drop_duplicates()
+A5a=A5.drop_duplicates()
+#A5a['variant']=A5a['variant'] + '_FR' + A5a['Freq'].astype(str)
+A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
+A5b=A5a.groupby(['File','RIF_Conf_Grade','INH_Conf_Grade', 'EMB_Conf_Grade', 'PZA_Conf_Grade', 'LEV_Conf_Grade',       'MXF_Conf_Grade', 'BDQ_Conf_Grade', 'LZD_Conf_Grade', 'CFZ_Conf_Grade',       'DLM_Conf_Grade', 'AMI_Conf_Grade', 'STM_Conf_Grade', 'ETH_Conf_Grade',       'KAN_Conf_Grade', 'CAP_Conf_Grade'])['variant'].apply(', '.join).reset_index()
+
+
+#A5b=A5.groupby(['File','RIF_Conf_Grade','INH_Conf_Grade', 'EMB_Conf_Grade', 'PZA_Conf_Grade', 'LEV_Conf_Grade',       'MXF_Conf_Grade', 'BDQ_Conf_Grade', 'LZD_Conf_Grade', 'CFZ_Conf_Grade',       'DLM_Conf_Grade', 'AMI_Conf_Grade', 'STM_Conf_Grade', 'ETH_Conf_Grade',       'KAN_Conf_Grade', 'CAP_Conf_Grade'])['variant'].apply(', '.join).reset_index()
+
+
+A5b.insert(1, "ID", A5b.File.str.split('_').str[0], True)
+#T5b['ID']=T5b.File.str.split('_').str[0]
+#A5b['new'] = A5b['ID'].str.extract('(\\d+)').astype(int)
+#https://stackoverflow.com/questions/66134896/python-pandas-sort-an-alphanumeric-dataframe
+#A5b = A5b.sort_values(by=['new'], ascending=True).drop('new', axis=1)
+A5b = A5b.sort_values(by=['ID'], ascending=True)#.drop('new', axis=1)
+
+A5b.to_csv('WHO_raw.csv',index=False, sep=';')
+
+"""
+}
+
+process OUT_WHO {
+cpus 1
+memory "20G"
+publishDir "OUTPUT", mode: 'copy', pattern: 'res_WHO.csv'
+input:
+        path(WHO)
+output:
+        path('res_WHO.csv')
+script:
+"""
+#!/usr/bin/env Rscript
+library(tidyverse)
+
+read_delim('${WHO}',delim=';') %>%
+  select(ID) %>% distinct() %>%
+  left_join(
+    (read_delim('${WHO}',delim=';') %>%
+       select(ID, ends_with('Grade'),variant) %>%
+       gather(drug,grade,ends_with('Grade')) %>%
+       filter(grade!='0') %>%
+       mutate(drug=str_remove_all(drug,'_.*')) %>%
+       group_by(ID,drug,grade) %>%
+       summarise(v=str_c(variant,collapse=', ')))) %>%
+  mutate(grade=str_replace_all(grade, ' ','_')) %>%
+  group_by(ID) %>% 
+  complete(drug,grade) %>% 
+  ungroup() %>% 
+  unite('drug',drug,grade,sep='_') %>%
+  spread(drug,v) %>%
+  mutate(Interpretation_126=case_when((!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na)&
+                                       !if_all(matches('^INH_1|^INH_2|^INH_6'),is.na)&
+                                       !if_all(matches('^LEV_1|^LEV_2|^LEV_6|^MXF_1|^MXF_2|^MXF_6'),is.na)&
+                                       !if_all(matches('^BDQ_1|^BDQ_2|^BDQ_6'),is.na))~'XDR',
+                                    (!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na)&
+                                       !if_all(matches('^INH_1|^INH_2|^INH_6'),is.na)&
+                                       !if_all(matches('^LEV_1|^LEV_2|^LEV_6|^MXF_1|^MXF_2|^MXF_6'),is.na))~'Pre-XDR',
+                                    (!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na)&
+                                       !if_all(matches('^INH_1|^INH_2|^INH_6'),is.na))~'MDR',
+                                    (!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na))~'RR')) %>% 
+  select(ID,starts_with('Interpretation'),matches('\\\\)')) %>% 
+  write_delim('res_WHO.csv',delim=';',na='')
+
+
+"""
+
 }

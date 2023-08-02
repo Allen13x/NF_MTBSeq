@@ -15,6 +15,12 @@ autoMounts = true
 	params.bed = "/beegfs/datasets/buffer/ric.cirillo/MTB/h37rv_ups_ordered.bed.gz"
 	params.bedix= "/beegfs/datasets/buffer/ric.cirillo/MTB/h37rv_ups_ordered.bed.gz.tbi"
 	params.tgene="/idle/ric.cirillo/dimarco.federico/tbseq/Cov_utils/target_genes.bed"
+	params.pharma=false
+	params.pgene="$baseDir/REF/gene_drug.csv"
+	params.tdrug=10
+	params.dhead="/$baseDir/REF/head"
+	params.WHO="/$baseDir/REF/WHO_custom.csv"
+
 log.info """\
 C A L L I N G S  -  N F    v 2.1 
 ================================
@@ -28,6 +34,11 @@ minphred20	: $params.minphred20
 mincovF		: $params.mincovf
 mincovR		: $params.mincovr
 results		: $params.results
+Interesing genes: $params.bed
+Target genes: $params.tgene
+Drug genes: $params.pgene
+Mutation Threshold: $params.tdrug
+WHO Catalogue: $params.WHO
 """
 
 /* 
@@ -48,13 +59,26 @@ include{COLLECT_READS;
 	OUT_DEL;
 	DEPTH;
 	OUT_DEPTH;
-	MUT_CORRECTION} from "$baseDir/module.nf"
+	MUT_CORRECTION;
+	MUT_GATHER;
+	PHARMA;
+	WHO;
+	OUT_WHO} from "$baseDir/module.nf"
 /* 
  * main pipeline logic
  */
 
 
 workflow {
+if (params.pharma){
+
+PHARMA(Channel.fromPath('Called/*corrected.tab').collect(),params.tdrug,params.pgene)
+
+
+}
+else{
+
+
 reads_ch=channel.fromFilePairs(params.reads)
 COLLECT_READS(reads_ch,params.SEQ,params.minbqual,params.RP,params.minphred20)
 MAPPING(COLLECT_READS.out)
@@ -80,4 +104,17 @@ depth=DEPTH.out.map{id,file->file}
 old_cov=channel.fromPath('OUTPUT/GB_cov.csv')
 depth=depth.concat(old_cov).collect()
 OUT_DEPTH(depth)
+mut=MUT_CORRECTION.out
+old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
+//mut.view()
+MUT_GATHER(mut)
+PHARMA(mut,"10",params.pgene)
+WHO(MUT_GATHER.out,params.dhead,params.WHO)
+OUT_WHO(WHO.out)
 }
+}
+
+
+
+
