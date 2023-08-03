@@ -20,6 +20,10 @@ autoMounts = true
 	params.tdrug=10
 	params.dhead="/$baseDir/REF/head"
 	params.WHO="/$baseDir/REF/WHO_custom.csv"
+	params.extra=true
+	params.join=true
+	params.sj='sample_joint'
+	params.proj='def'
 
 log.info """\
 C A L L I N G S  -  N F    v 2.1 
@@ -55,6 +59,7 @@ include{COLLECT_READS;
 	STATS;
 	STRAIN;
 	MAP_STRAIN;
+	JOIN;
 	DEL;
 	OUT_DEL;
 	DEPTH;
@@ -87,15 +92,18 @@ PILE(REFINE.out.gatk)
 LIST(PILE.out.mpile,params.minbqual)
 VARIANTS_LOW(LIST.out.list)
 VARIANTS(LIST.out.list,params.mincovf,params.mincovr,params.minphred20)
-DEL(MAPPING.out.bam,params.ref,params.bed,params.bedix)
-DEPTH(MAPPING.out.bam,params.tgene)
-MUT_CORRECTION(VARIANTS_LOW.out.var_low)
+
 STATS(MAPPING.out.bam.join(LIST.out.list,by: 0),params.mincovf,params.mincovr,params.minphred20)
 STRAIN(LIST.out.list)
 map_strain=STATS.out.stats.join(STRAIN.out.strain,by:0).map{id,file1,file2 -> tuple(file1,file2)}.collect()
-old_map=channel.fromPath('OUTPUT/Mapping_Classification.tab')
+old_map=channel.fromPath('OUTPUT/Mapping_Classification_clean.tab')
 map_strain=map_strain.concat(old_map).collect()
 MAP_STRAIN(map_strain)
+
+if (params.extra){
+DEL(MAPPING.out.bam,params.ref,params.bed,params.bedix)
+DEPTH(MAPPING.out.bam,params.tgene)
+MUT_CORRECTION(VARIANTS_LOW.out.var_low)
 delly=DEL.out.map{id,file -> file}
 old_del=channel.fromPath('OUTPUT/DELETIONS.tab')
 delly=delly.concat(old_del).collect()
@@ -112,6 +120,20 @@ MUT_GATHER(mut)
 PHARMA(mut,"10",params.pgene)
 WHO(MUT_GATHER.out,params.dhead,params.WHO)
 OUT_WHO(WHO.out)
+}
+
+if (params.join){
+call=VARIANTS.out.var
+old_call=Channel.fromPath('Called/*variants_cf4*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+call=call.concat(old_call).unique{it[0]}.map{id,file->file}.collect()
+list=LIST.out.list
+old_list=Channel.fromPath('Position_Tables/*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+list=list.concat(old_list).unique{it[0]}.map{id,file->file}.collect()
+
+JOIN(call,list,params.sj,params.minbqual,params.minphred20,params.proj)
+}
+
+
 }
 }
 

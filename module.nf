@@ -110,7 +110,7 @@ memory "20GB"
 cpus 8
 //conda "--copy bioconda::mtbseq"
 tag "$replicateId"
-//publishDir "Position_Tables", mode:'copy', pattern: "*position_table*"
+publishDir "Position_Tables", mode:'copy', pattern: "*position_table*"
 input:
         tuple val(replicateId), path(pile)
 		val(minbq)
@@ -203,6 +203,39 @@ ln -s Statistics/* .
 }
 
 
+
+process JOIN {
+memory "60GB"
+cpus 1
+publishDir "Joint", mode: "copy", pattern: "Joint/*"
+publishDir "Amend", mode: "copy", pattern: "Amend/*"
+publishDir "Groups", mode: "copy", pattern: "Groups/*"
+input:
+        path(cc)
+        path(ll)
+        val(sample_joint)
+	val(minbqual)
+	val(minphred20)
+        val(proj)
+output:
+        path("Joint/*"), emit: joint
+        path("Amend/*"), emit: amend
+        path("Groups/*"), emit: groups
+script:
+"""
+mkdir Position_Tables
+mv *position_table* Position_Tables
+mkdir Called
+mv *cf4* Called/
+mkdir Joint
+mkdir Amend
+mkdir Groups
+ls -1 Called/*_variants_cf4* | cut -f2 -d'/' | cut -f1,2 -d '_' | tr '_' '\\t' | sort -r | sort -u -k1,1 > sample_joint
+USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --samples ${sample_joint} --distance 5 --project ${proj} --minbqual ${minbqual} --minphred20 ${minphred20} || echo "processed \$?"
+"""
+
+}
+
 process STRAIN {
 memory "20GB"
 cpus 1
@@ -242,7 +275,9 @@ do
 paste \${i}_Mapp* \${i}_Strain* >> Mapping_Classification.tab
 done
 
-sort -u -r -o Mapping_Classification.tab Mapping_Classification.tab
+sort -u -r -k2 Mapping_Classification.tab | cut --complement -f1,25 |uniq >Mapping_Classification.tab.tmp
+mv Mapping_Classification.tab.tmp Mapping_Classification.tab
+
 """
 }
 
@@ -278,6 +313,10 @@ script:
 """
 
 awk '{print gensub("\\.dels","","g",FILENAME),\$0}' OFS='\\t' *.dels | tr ';' '\\t' >> DELETIONS.tab
+
+
+sort -k1,1 -k2,2 -n -u -o DELETIONS.tab DELETIONS.tab
+
 
 """
 }
