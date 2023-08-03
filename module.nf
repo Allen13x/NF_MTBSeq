@@ -36,13 +36,14 @@ tag "$replicateId"
 publishDir "Bam", mode:'copy', pattern: "*bam*"
 input:
 	tuple val(replicateId), path(reads1), path(reads2)
+        val(ref)
 output:
 	tuple val(replicateId), path("Bam"), emit: BAM
 	tuple val(replicateId), path("*bam*"), emit: bam
 	val 'done', emit:done
 script:
 """
-USER=a perl /opt/conda/bin/MTBseq --step TBbwa --threads 8 || echo "processed \$?"
+USER=a perl /opt/conda/bin/MTBseq --step TBbwa --threads ${task.cpus} --ref ${ref}|| echo "processed \$?"
 ln -s Bam/*bam* .
 #touch ${replicateId}_a.bam
 #touch ${replicateId}_a.bam.bai
@@ -52,7 +53,9 @@ ln -s Bam/*bam* .
 }
 
 
-
+/*
+* GATK
+*/
 
 
 process REFINE {
@@ -63,6 +66,7 @@ tag "$replicateId"
 publishDir "GATK_Bam", mode:'copy', pattern: "*gatk*"
 input:
         tuple val(replicateId), path(bam1)
+        val(ref)
 output:
         tuple val(replicateId), path("*gatk*"), emit: gatk
         tuple val(replicateId), path("GATK_Bam"), emit: GATK_Bam
@@ -72,7 +76,7 @@ script:
 mkdir GATK_Bam
 mkdir Bam
 mv *bam* Bam/
-USER=a perl /opt/conda/bin/MTBseq --step TBrefine --threads 8 || echo "processed \$?"
+USER=a perl /opt/conda/bin/MTBseq --step TBrefine --threads ${task.cpus} --ref ${ref} || echo "processed \$?"
 ln -s GATK_Bam/* .
 #touch ${replicateId}_a.gatk.bam ${replicateId}_a.gatk.bai
 
@@ -80,7 +84,9 @@ ln -s GATK_Bam/* .
 }
 
 
-
+/*
+* Pileup
+*/
 
 process PILE {
 memory "20GB"
@@ -90,6 +96,7 @@ tag "$replicateId"
 publishDir "Mpileup", mode:'copy', pattern: "*mpileup*"
 input:
         tuple val(replicateId), path(bam)
+        val(ref)
 output:
         tuple val(replicateId), path("*mpileup*"), emit: mpile
         tuple val(replicateId), path("Mpileup"), emit: MPILE
@@ -99,11 +106,14 @@ script:
 mkdir Mpileup
 mkdir GATK_Bam
 mv *gatk* GATK_Bam
-USER=a perl /opt/conda/bin/MTBseq --step TBpile --threads 8 || echo "processed \$?"
+USER=a perl /opt/conda/bin/MTBseq --step TBpile --threads 8 --ref ${ref} || echo "processed \$?"
 ln -s Mpileup/* .
 """
 }
 
+/*
+* Position Table
+*/
 
 process LIST {
 memory "20GB"
@@ -113,7 +123,8 @@ tag "$replicateId"
 publishDir "Position_Tables", mode:'copy', pattern: "*position_table*"
 input:
         tuple val(replicateId), path(pile)
-		val(minbq)
+	val(minbq)
+        val(ref)
 output:
         tuple val(replicateId), path("*position_table*"), emit: list
         tuple val(replicateId), path("Position_Tables"), emit: LIST
@@ -122,10 +133,14 @@ script:
 mkdir Mpileup
 mv *mpileup* Mpileup/
 mkdir Position_Tables
-USER=a perl /opt/conda/bin/MTBseq --step TBlist --threads 8 --minbqual $minbq || echo "processed \$?"
+USER=a perl /opt/conda/bin/MTBseq --step TBlist --threads 8 --minbqual $minbq --ref ${ref}|| echo "processed \$?"
 ln -s Position_Tables/* .
 """
 }
+
+/*
+* Variants_low
+*/
 
 process VARIANTS_LOW {
 memory "20GB"
@@ -135,6 +150,7 @@ tag "$replicateId"
 publishDir "Called", mode:'copy', pattern: "*tab"
 input:
         tuple val(replicateId), path(list)
+        val(ref)
 output:
         tuple val(replicateId), path("*tab"), emit: var_low
         tuple val(replicateId), path("Called"), emit: VAR_LOW
@@ -143,10 +159,14 @@ script:
 mkdir Position_Tables
 mv *position_table* Position_Tables
 mkdir Called
-USER=a perl /opt/conda/bin/MTBseq --step TBvariants  --mincovf 1 --mincovr 1 --lowfreq_vars --minfreq 5 --minphred20 1 || echo "processed \$?"
+USER=a perl /opt/conda/bin/MTBseq --step TBvariants --ref ${ref} --mincovf 1 --mincovr 1 --lowfreq_vars --minfreq 5 --minphred20 1 || echo "processed \$?"
 ln -s Called/* .
 """
 }
+
+/*
+* Variants
+*/
 
 
 process VARIANTS {
@@ -160,6 +180,7 @@ input:
 	val(mincovf)
 	val(mincovr)
 	val(minphred)
+        val(ref)
 output:
         tuple val(replicateId), path("*tab"), emit: var
         tuple val(replicateId), path("Called"), emit: VAR
@@ -168,7 +189,7 @@ script:
 mkdir Position_Tables
 mv *position_table* Position_Tables
 mkdir Called
-USER=a perl /opt/conda/bin/MTBseq --step TBvariants  --mincovf $mincovf --mincovr $mincovr --minphred20 $minphred || echo "processed \$?"
+USER=a perl /opt/conda/bin/MTBseq --step TBvariants --ref ${ref}  --mincovf $mincovf --mincovr $mincovr --minphred20 $minphred || echo "processed \$?"
 ln -s Called/* .
 """
 }
@@ -217,6 +238,7 @@ input:
 	val(minbqual)
 	val(minphred20)
         val(proj)
+        val(ref)
 output:
         path("Joint/*"), emit: joint
         path("Amend/*"), emit: amend
@@ -231,7 +253,7 @@ mkdir Joint
 mkdir Amend
 mkdir Groups
 ls -1 Called/*_variants_cf4* | cut -f2 -d'/' | cut -f1,2 -d '_' | tr '_' '\\t' | sort -r | sort -u -k1,1 > sample_joint
-USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --samples ${sample_joint} --distance 5 --project ${proj} --minbqual ${minbqual} --minphred20 ${minphred20} || echo "processed \$?"
+USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --ref ${ref} --samples ${sample_joint} --distance 5 --project ${proj} --minbqual ${minbqual} --minphred20 ${minphred20} || echo "processed \$?"
 """
 
 }

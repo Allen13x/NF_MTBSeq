@@ -11,7 +11,8 @@ autoMounts = true
 	params.minphred20	= "4"
 	params.mincovf	= "4"
 	params.mincovr	= "4"
-	params.ref = "$baseDir/REF/M._tuberculosis_H37Rv_2015-11-13.fasta"
+	params.ref="M._tuberculosis_H37Rv_2015-11-13"
+	params.reff = "$baseDir/REF/${params.ref}.fasta"
 	params.bed = "/beegfs/datasets/buffer/ric.cirillo/MTB/h37rv_ups_ordered.bed.gz"
 	params.bedix= "/beegfs/datasets/buffer/ric.cirillo/MTB/h37rv_ups_ordered.bed.gz.tbi"
 	params.tgene="/idle/ric.cirillo/dimarco.federico/tbseq/Cov_utils/target_genes.bed"
@@ -86,12 +87,12 @@ else{
 
 reads_ch=channel.fromFilePairs(params.reads)
 COLLECT_READS(reads_ch,params.SEQ,params.minbqual,params.RP,params.minphred20)
-MAPPING(COLLECT_READS.out)
-REFINE(MAPPING.out.bam)
-PILE(REFINE.out.gatk)
-LIST(PILE.out.mpile,params.minbqual)
-VARIANTS_LOW(LIST.out.list)
-VARIANTS(LIST.out.list,params.mincovf,params.mincovr,params.minphred20)
+MAPPING(COLLECT_READS.out,params.ref)
+REFINE(MAPPING.out.bam,params.ref)
+PILE(REFINE.out.gatk,params.ref)
+LIST(PILE.out.mpile,params.minbqual,params.ref)
+VARIANTS_LOW(LIST.out.list,params.ref)
+VARIANTS(LIST.out.list,params.mincovf,params.mincovr,params.minphred20,params.ref)
 
 STATS(MAPPING.out.bam.join(LIST.out.list,by: 0),params.mincovf,params.mincovr,params.minphred20)
 STRAIN(LIST.out.list)
@@ -101,7 +102,7 @@ map_strain=map_strain.concat(old_map).collect()
 MAP_STRAIN(map_strain)
 
 if (params.extra){
-DEL(MAPPING.out.bam,params.ref,params.bed,params.bedix)
+DEL(MAPPING.out.bam,params.reff,params.bed,params.bedix)
 DEPTH(MAPPING.out.bam,params.tgene)
 MUT_CORRECTION(VARIANTS_LOW.out.var_low)
 delly=DEL.out.map{id,file -> file}
@@ -130,7 +131,7 @@ list=LIST.out.list
 old_list=Channel.fromPath('Position_Tables/*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 list=list.concat(old_list).unique{it[0]}.map{id,file->file}.collect()
 
-JOIN(call,list,params.sj,params.minbqual,params.minphred20,params.proj)
+JOIN(call,list,params.sj,params.minbqual,params.minphred20,params.proj,params.ref)
 }
 
 
