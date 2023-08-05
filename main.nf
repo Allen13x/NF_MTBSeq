@@ -3,7 +3,7 @@ autoMounts = true
 /*
  * Define the default parameters
  */ 
-	params.reads	= "$baseDir/*_R{1,2}*.fastq.gz"
+	params.reads	= "$baseDir/samp/*_R{1,2}*.fastq.gz"
 	params.results	= "OUTPUT"
 	params.SEQ	= "ILL"
 	params.minbqual	= "13"
@@ -85,7 +85,8 @@ PHARMA(Channel.fromPath('Called/*corrected.tab').collect(),params.tdrug,params.p
 else{
 
 
-reads_ch=channel.fromFilePairs(params.reads)
+reads_ch=channel.fromFilePairs(params.reads).map{id,file ->tuple((id - ~/_.*/),file)}
+//reads_ch.view()
 COLLECT_READS(reads_ch,params.SEQ,params.minbqual,params.RP,params.minphred20)
 MAPPING(COLLECT_READS.out,params.ref)
 REFINE(MAPPING.out.bam,params.ref)
@@ -99,7 +100,7 @@ STRAIN(LIST.out.list)
 map_strain=STATS.out.stats.join(STRAIN.out.strain,by:0).map{id,file1,file2 -> tuple(file1,file2)}.collect()
 old_map=channel.fromPath('OUTPUT/Mapping_Classification_clean.tab')
 map_strain=map_strain.concat(old_map).collect()
-MAP_STRAIN(map_strain)
+
 
 if (params.extra){
 DEL(MAPPING.out.bam,params.reff,params.bed,params.bedix)
@@ -119,6 +120,7 @@ mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
 //mut.view()
 MUT_GATHER(mut)
 PHARMA(mut,"10",params.pgene)
+MAP_STRAIN(map_strain)
 WHO(MUT_GATHER.out,params.dhead,params.WHO)
 OUT_WHO(WHO.out)
 }
@@ -130,8 +132,8 @@ call=call.concat(old_call).unique{it[0]}.map{id,file->file}.collect()
 list=LIST.out.list
 old_list=Channel.fromPath('Position_Tables/*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 list=list.concat(old_list).unique{it[0]}.map{id,file->file}.collect()
-
 JOIN(call,list,params.sj,params.minbqual,params.minphred20,params.proj,params.ref)
+
 }
 
 

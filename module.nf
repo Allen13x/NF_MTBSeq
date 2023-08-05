@@ -248,7 +248,7 @@ script:
 mkdir Position_Tables
 mv *position_table* Position_Tables
 mkdir Called
-mv *cf4* Called/
+mv *variants_cf4* Called/
 mkdir Joint
 mkdir Amend
 mkdir Groups
@@ -262,7 +262,7 @@ process STRAIN {
 memory "20GB"
 cpus 1
 tag "$replicateId"
-//publishDir "Classification", mode:'copy', pattern: "*tab"
+publishDir "Classification", mode:'copy', pattern: "*tab"
 input:
         tuple val(replicateId), path(list)
 output:
