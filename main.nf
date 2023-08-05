@@ -25,6 +25,7 @@ autoMounts = true
 	params.join=true
 	params.sj='sample_joint'
 	params.proj='def'
+	params.h=false
 
 log.info """\
 C A L L I N G S  -  N F    v 2.1 
@@ -76,6 +77,24 @@ include{COLLECT_READS;
 
 
 workflow {
+if (params.h){
+println "
+  -ref        Reference Genome to use:
+                  M._abscessus_CIP-104536T_2014-02-03
+                  M._chimaera_DSM44623_2016-01-28
+                  M._fortuitum_CT6_2016-01-08
+                  M._tuberculosis_H37Rv_2015-11-13 [default]
+  -join       Perform joint analysis [default: true]
+  -sj         List of samples to use for joint analysis [optional]
+  -proj       Name of the project for joint analysis [default: def]
+  -pharma     Perform Drug resistance analysis at Custom frequencies (to use after first round of analysis) [default: false]
+  -tdrug      Custom frequencies % [default: 10]
+  -extra      Perform extra analysis [default: true]:
+                 Deletion/Insertion detection with Delly2
+                 Sequencing depth with Mosdepth
+                 Pharma analysis at 10% and Comparison with WHO catalogue   
+"
+}else{
 if (params.pharma){
 
 PHARMA(Channel.fromPath('Called/*corrected.tab').collect(),params.tdrug,params.pgene)
@@ -137,4 +156,4 @@ JOIN(call,list,params.sj,params.minbqual,params.minphred20,params.proj,params.re
 
 
 }
-}
+}}
