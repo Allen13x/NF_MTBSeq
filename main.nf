@@ -29,7 +29,7 @@ autoMounts = true
 log.info """\
 C A L L I N G S  -  N F    v 2.1 
 ================================
-reads   	: $params.reads
+reads   	: $params.reads + '*_R{1,2}*.fastq.gz'
 reference	: $params.ref
 bed			: $params.bed
 SEQ		: $params.SEQ
@@ -83,7 +83,6 @@ PHARMA(Channel.fromPath('Called/*corrected.tab').collect(),params.tdrug,params.p
 
 }
 else{
-
 
 reads_ch=channel.fromFilePairs(params.reads + '*_R{1,2}*.fastq.gz').map{id,file ->tuple((id - ~/_.*/),file)}
 //reads_ch.view()
@@ -139,7 +138,3 @@ JOIN(call,list,params.sj,params.minbqual,params.minphred20,params.proj,params.re
 
 }
 }
-
-
-
-
