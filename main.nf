@@ -3,7 +3,7 @@ autoMounts = true
 /*
  * Define the default parameters
  */ 
-	params.reads	= "$baseDir/samp/*_R{1,2}*.fastq.gz"
+	params.reads	= "$baseDir/samp"
 	params.results	= "OUTPUT"
 	params.SEQ	= "ILL"
 	params.minbqual	= "13"
@@ -85,7 +85,7 @@ PHARMA(Channel.fromPath('Called/*corrected.tab').collect(),params.tdrug,params.p
 else{
 
 
-reads_ch=channel.fromFilePairs(params.reads).map{id,file ->tuple((id - ~/_.*/),file)}
+reads_ch=channel.fromFilePairs(params.reads + '*_R{1,2}*.fastq.gz').map{id,file ->tuple((id - ~/_.*/),file)}
 //reads_ch.view()
 COLLECT_READS(reads_ch,params.SEQ,params.minbqual,params.RP,params.minphred20)
 MAPPING(COLLECT_READS.out,params.ref)
