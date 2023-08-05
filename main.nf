@@ -27,25 +27,6 @@ autoMounts = true
 	params.proj='def'
 	params.h=false
 
-log.info """\
-C A L L I N G S  -  N F    v 2.1 
-================================
-reads   	: $params.reads + '*_R{1,2}*.fastq.gz'
-reference	: $params.ref
-bed			: $params.bed
-SEQ		: $params.SEQ
-minbq		: $params.minbqual
-REP REG		: $params.RP
-minphred20	: $params.minphred20
-mincovF		: $params.mincovf
-mincovR		: $params.mincovr
-results		: $params.results
-Interesing genes: $params.bed
-Target genes: $params.tgene
-Drug genes: $params.pgene
-Mutation Threshold: $params.tdrug
-WHO Catalogue: $params.WHO
-"""
 
 /* 
  * Import modules 
@@ -102,6 +83,25 @@ PHARMA(Channel.fromPath('Called/*corrected.tab').collect(),params.tdrug,params.p
 
 }
 else{
+log.info """\
+================================
+reads   	: $params.reads + '*_R{1,2}*.fastq.gz'
+reference	: $params.ref
+bed			: $params.bed
+SEQ		: $params.SEQ
+minbq		: $params.minbqual
+REP REG		: $params.RP
+minphred20	: $params.minphred20
+mincovF		: $params.mincovf
+mincovR		: $params.mincovr
+results		: $params.results
+Interesing genes: $params.bed
+Target genes: $params.tgene
+Drug genes: $params.pgene
+Mutation Threshold: $params.tdrug
+WHO Catalogue: $params.WHO
+"""
+
 
 reads_ch=channel.fromFilePairs(params.reads + '*_R{1,2}*.fastq.gz').map{id,file ->tuple((id - ~/_.*/),file)}
 //reads_ch.view()
