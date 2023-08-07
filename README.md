@@ -5,7 +5,9 @@ Presenting an enhanced version of the MTBseq pipeline, now implemented in Nextfl
 This pipeline exploits the following software components:
 
 MTBseq: https://github.com/ngs-fzb/MTBseq_source
+
 Mosdepth: https://github.com/brentp/mosdepth
+
 Delly2: https://github.com/dellytools/delly
 
 ## Requirements
