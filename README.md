@@ -16,9 +16,9 @@ Delly2: https://github.com/dellytools/delly
 
 ## Quick Usage
 Put the .fastqs in a folder named "samp" and then use:
-
-`nextflow run https://github.com/Allen13x/NF_TBSEQ -with-singularity library://allen13x/mtbseq/nf_mtbseq:1.0.0 -resume --join false --extra false -r main --reads $(pwd)/samp/`
-
+```
+nextflow run https://github.com/Allen13x/NF_TBSEQ -with-singularity library://allen13x/mtbseq/nf_mtbseq:1.0.0 -resume --join false --extra false -r main --reads $(pwd)/samp/
+```
 This will perform the basic single-sample-level characterizion from MTBseq pipeline
 
 ## Parameters
