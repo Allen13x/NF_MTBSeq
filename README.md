@@ -1,6 +1,12 @@
 # NF_TBSEQ
 
-Nextflow implementation of MTBseq pipeline with additional features.
+Presenting an enhanced version of the MTBseq pipeline, now implemented in Nextflow. Additional features include the integration of deletion/insertion detection using delly2, breadth coverage analysis for target genes with Mosdepth, and the incorporation of drug resistance pattern detection and interpretation through the utilization of the WHO catalogue as a point of reference (available at: https://www.who.int/publications/i/item/9789240028173).
+
+This pipeline exploits the following software components:
+
+MTBseq: https://github.com/ngs-fzb/MTBseq_source
+Mosdepth: https://github.com/brentp/mosdepth
+Delly2: https://github.com/dellytools/delly
 
 ## Requirements
   - Singularity
@@ -32,3 +38,14 @@ This will perform the basic single-sample-level characterizion from MTBseq pipel
                  Sequencing depth with Mosdepth
                  Pharma analysis at 10% and Comparison with WHO catalogue            
 ```
+## Customization
+To use on other species, it is necessary to rebuild the singularity image, adding the new reference genome to the /opt/conda/share/mtbseq-1.0.4-2/var/ref/ folder and rebuild the indexes with the commands:
+
+samtools faidx /opt/conda/share/mtbseq-1.0.4-2/var/ref/NEWGENOME.fasta
+bwa index /opt/conda/share/mtbseq-1.0.4-2/var/ref/NEWGENOME.fasta
+picard CreateSequenceDictionary -R /opt/conda/share/mtbseq-1.0.4-2/var/ref/NEWGENOME.fasta
+
+## Future Plans
+
+Implentation for Long Reads from Oxford Nanopore Technology
+
