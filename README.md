@@ -42,10 +42,11 @@ This will perform the basic single-sample-level characterizion from MTBseq pipel
 ```
 ## Customization
 To use on other species, it is necessary to rebuild the singularity image, adding the new reference genome to the /opt/conda/share/mtbseq-1.0.4-2/var/ref/ folder and rebuild the indexes with the commands:
-
+```
 samtools faidx /opt/conda/share/mtbseq-1.0.4-2/var/ref/NEWGENOME.fasta
 bwa index /opt/conda/share/mtbseq-1.0.4-2/var/ref/NEWGENOME.fasta
 picard CreateSequenceDictionary -R /opt/conda/share/mtbseq-1.0.4-2/var/ref/NEWGENOME.fasta
+```
 
 ## Future Plans
 
