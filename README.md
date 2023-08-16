@@ -24,7 +24,9 @@ This will perform the basic single-sample-level characterizion from MTBseq pipel
 ## Parameters
 
 ```
-  -h          Show this help
+  --SEQ		    Sequencing technology:
+				          ILL: Illumina [default]
+				          ONT: Oxford Nanopore technology  
   -ref        Reference Genome to use:
                   M._abscessus_CIP-104536T_2014-02-03
                   M._chimaera_DSM44623_2016-01-28
