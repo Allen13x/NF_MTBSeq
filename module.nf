@@ -99,7 +99,7 @@ samtools index -b Bam/${replicateId}.nodup.bam 2>> Bam/${replicateId}.bamlog
 
 rm Bam/${replicateId}.sam Bam/${replicateId}.bam Bam/${replicateId}.sorted.bam Bam/${replicateId}.sorted.bam.bai
 
-mv Bam/${replicateId}.nodup.bam Bam/${replicateId}_${ss}_nBP.bam
+mv Bam/${replicateId}.nodup.bam Bam/${replicateId}_\${ss}_nBP.bam
 mv Bam/${replicateId}.nodup.bam.bai Bam/${replicateId}_\${ss}_nBP.bam.bai
 ln -s Bam/*bam* .
 """
