@@ -88,7 +88,7 @@ output:
 	val 'done', emit:done
 script:
 """
-ss=\$(ls -1 *fastq.gz | cut -f2 -d '_'= 
+ss=\$(ls -1 *fastq.gz | cut -f2 -d '_')
 mkdir Bam
 bwa mem -t ${task.cpus} /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta *.fastq.gz > Bam/${replicateId}.sam 2>> Bam/${replicateId}.bamlog
 samtools view -@ ${task.cpus} -b -T /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta -o Bam/${replicateId}.bam Bam/${replicateId}.sam 2>> Bam/${replicateId}.bamlog
