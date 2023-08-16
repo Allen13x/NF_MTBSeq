@@ -49,6 +49,7 @@ include{COLLECT_READS;
 	MAP_STRAIN;
 	JOIN;
 	DEL;
+	DEL_ONT;
 	OUT_DEL;
 	DEPTH;
 	OUT_DEPTH;
@@ -145,10 +146,15 @@ map_strain=map_strain.concat(old_map).collect()
 
 
 if (params.extra){
-DEL(mapped.bam,params.reff,params.bed,params.bedix)
+if (params.SEQ == "ILL"){	
+DEL(mapped.bam,params.ref,params.bed,params.bedix)
+deletion=DEL.out}
+else{
+DEL_ONT(mapped.bam,params.ref,params.bed,params.bedix)
+deletion=DEL_ONT.out}
 DEPTH(mapped.bam,params.tgene)
 MUT_CORRECTION(VARIANTS_LOW.out.var_low)
-delly=DEL.out.map{id,file -> file}
+delly=deletion.map{id,file -> file}
 old_del=channel.fromPath('OUTPUT/DELETIONS.tab')
 delly=delly.concat(old_del).collect()
 OUT_DEL(delly)

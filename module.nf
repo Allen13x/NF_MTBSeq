@@ -433,18 +433,39 @@ cpus 1
 memory '20GB'
 input:
 	tuple val(replicateId), path(bam)
-	path(ref)
+	val(ref)
 	path(bed)
 	path(bedix)
 output:
 	tuple val(replicateId), path("*.dels")
 script:
 """
-delly call -o ${replicateId}.bcf -g ${ref} ${replicateId}*.bam
+delly call -o ${replicateId}.bcf -g /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta ${replicateId}*.bam
 
-bcftools annotate -a h37rv_ups_ordered.bed.gz -c CHROM,FROM,TO,GENE -h <(echo '##INFO=<ID=GENE,Number=1,Type=String,Description="Gene name">') ${replicateId}.bcf | grep -P "<DEL>|<INS>" | grep "PASS" | grep -i -v "lowQual" |cut -f2,4,5,8,10 | awk '{ if (\$4 ~ "GENE") {print \$1,gensub(";.*","","g",gensub(".*;END=","","g",\$4)),gensub(">|<","","g",\$3),\$2,gensub(".*:([^:]*):([^:]*\$)","\\\\1;\\\\2","g",gensub(":0:0\$","","g",\$5)),gensub("(^[PI]).*","\\\\1","g",\$4),gensub(".*GENE=","","g",\$4)} else {print \$1,gensub(";.*","","g",gensub(".*;END=","","g",\$4)),gensub(">|<","","g",\$3),\$2,gensub(".*:([^:]*):([^:]*\$)","\\\\1;\\\\2","g",gensub(":0:0\$","","g",\$5)),gensub("(^[PI]).*","\\\\1","g",\$4)}}' OFS=';' | awk -F ';' '{if (\$2-\$1 < 100000) {print \$1,\$2, \$2-\$1,\$3,\$4,\$5,\$6,\$6/(\$6+\$5),\$7,\$8}}' OFS=';' > ${replicateId}.dels
+bcftools annotate -a ${bed} -c CHROM,FROM,TO,GENE -h <(echo '##INFO=<ID=GENE,Number=1,Type=String,Description="Gene name">') ${replicateId}.bcf | grep -P "=DEL|=INS" | grep "PASS" | grep -i -v "lowQual" | cut -f2,4,5,8,10 |  awk '{if (\$4 ~ "SVLEN") {print \$0,gensub(".*END=([0-9]*);.*","\\\\1","g",\$4),gensub(".*SVLEN=([0-9]*);.*","\\\\1","g",\$4)} else {print \$0, gensub(".*END=([0-9]*);.*","\\\\1","g",\$4),0}}' | awk '{ if (\$4 ~ "GENE") {print \$1,\$6,gensub(".*SVTYPE=([A-Z]*);.*","\\\\1","g",\$4),\$2,gensub(".*:([^:]*):([^:]*$)","\\\\1;\\\\2","g",gensub(":0:0$","","g",\$5)),\$7,gensub("(^[PI]).*","\\\\1","g",\$4),gensub(".*GENE=","","g",\$4)} else {print \$1,\$6,gensub(".*SVTYPE=([A-Z]*);.*","\\\\1","g",\$4),\$2,gensub(".*:([^:]*):([^:]*$)","\\\\1;\\\\2","g",gensub(":0:0$","","g",\$5)),\$7,gensub("(^[PI]).*","\\\\1","g",\$4)}}' OFS=';' |  awk -F ';' '{if (\$7+\$2-\$1 < 100000) {print \$1,\$2, \$7+\$2-\$1,\$3,\$4,\$5,\$6,\$6/(\$6+\$5),\$8,\$9}}' OFS=';' > ${replicateId}.dels
 """
 }
+
+
+process DEL_ONT {
+tag "$replicateId"
+cpus 1
+memory '20GB'
+input:
+	tuple val(replicateId), path(bam)
+	val(ref)
+	path(bed)
+	path(bedix)
+output:
+	tuple val(replicateId), path("*.dels")
+script:
+"""
+delly lr -o ${replicateId}.bcf -g /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta ${replicateId}*.bam
+
+bcftools annotate -a ${bed} -c CHROM,FROM,TO,GENE -h <(echo '##INFO=<ID=GENE,Number=1,Type=String,Description="Gene name">') ${replicateId}.bcf | grep -P "=DEL|=INS" | grep "PASS" | grep -i -v "lowQual" | cut -f2,4,5,8,10 |  awk '{if (\$4 ~ "SVLEN") {print \$0,gensub(".*END=([0-9]*);.*","\\\\1","g",\$4),gensub(".*SVLEN=([0-9]*);.*","\\\\1","g",\$4)} else {print \$0, gensub(".*END=([0-9]*);.*","\\\\1","g",\$4),0}}' | awk '{ if (\$4 ~ "GENE") {print \$1,\$6,gensub(".*SVTYPE=([A-Z]*);.*","\\\\1","g",\$4),\$2,gensub(".*:([^:]*):([^:]*$)","\\\\1;\\\\2","g",gensub(":0:0$","","g",\$5)),\$7,gensub("(^[PI]).*","\\\\1","g",\$4),gensub(".*GENE=","","g",\$4)} else {print \$1,\$6,gensub(".*SVTYPE=([A-Z]*);.*","\\\\1","g",\$4),\$2,gensub(".*:([^:]*):([^:]*$)","\\\\1;\\\\2","g",gensub(":0:0$","","g",\$5)),\$7,gensub("(^[PI]).*","\\\\1","g",\$4)}}' OFS=';' |  awk -F ';' '{if (\$7+\$2-\$1 < 100000) {print \$1,\$2, \$7+\$2-\$1,\$3,\$4,\$5,\$6,\$6/(\$6+\$5),\$8,\$9}}' OFS=';' > ${replicateId}.dels
+"""     
+}
+
 
 process OUT_DEL {
 cpus 1
