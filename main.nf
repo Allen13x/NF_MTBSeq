@@ -12,7 +12,7 @@ autoMounts = true
 	params.mincovf	= "4"
 	params.mincovr	= "4"
 	params.ref="M._tuberculosis_H37Rv_2015-11-13"
-	params.reff = "$baseDir/REF/${params.ref}.fasta"
+	params.reff = "${baseDir}/${params.ref}.fasta"
 	params.bed = "REF/h37rv_ups_ordered.bed.gz"
 	params.bedix= "REF/h37rv_ups_ordered.bed.gz.tbi"
 	params.tgene="REF/target_genes.bed"
@@ -25,6 +25,7 @@ autoMounts = true
 	params.join=true
 	params.sj='sample_joint'
 	params.proj='def'
+	params.ascii="$baseDir/REF/ascii_string"
 	params.h=false
 
 
@@ -33,9 +34,13 @@ autoMounts = true
  */
 
 include{COLLECT_READS;
+	COLLECT_READS_ONT;
 	MAPPING;
+	MAPPING_ONT;
 	REFINE;
+	REFINE_ONT;
 	PILE;
+	PILE_ONT;
 	LIST;
 	VARIANTS_LOW;
 	VARIANTS;
@@ -102,18 +107,36 @@ Mutation Threshold: $params.tdrug
 WHO Catalogue: $params.WHO
 """
 
+if(params.SEQ == "ILL"){
 
 reads_ch=channel.fromFilePairs(params.reads + '*_R{1,2}*.fastq.gz').map{id,file ->tuple((id - ~/_.*/),file)}
 //reads_ch.view()
 COLLECT_READS(reads_ch,params.SEQ,params.minbqual,params.RP,params.minphred20)
+collected=COLLECT_READS.out
 MAPPING(COLLECT_READS.out,params.ref)
+mapped=MAPPING.out
 REFINE(MAPPING.out.bam,params.ref)
+refined=REFINE.out
 PILE(REFINE.out.gatk,params.ref)
-LIST(PILE.out.mpile,params.minbqual,params.ref)
+piled=PILE.out
+}
+else{
+reads_ch=channel.fromPath(params.reads + '/*fastq.gz').map{file ->tuple((file.getSimpleName() - ~/_.*/),file)}
+//reads_ch.view()
+COLLECT_READS_ONT(reads_ch,params.SEQ,params.minbqual,params.RP,params.minphred20)
+collected=COLLECT_READS_ONT.out
+MAPPING_ONT(COLLECT_READS_ONT.out,params.ref)
+mapped=MAPPING_ONT.out
+REFINE_ONT(MAPPING_ONT.out.bam,params.ref,params.ascii)
+refined=REFINE_ONT.out
+PILE_ONT(REFINE_ONT.out.gatk,params.ref,params.minbqual)
+piled=PILE_ONT.out}
+
+LIST(piled.mpile,params.minbqual,params.ref)
 VARIANTS_LOW(LIST.out.list,params.ref)
 VARIANTS(LIST.out.list,params.mincovf,params.mincovr,params.minphred20,params.ref)
 
-STATS(MAPPING.out.bam.join(LIST.out.list,by: 0),params.mincovf,params.mincovr,params.minphred20)
+STATS(mapped.bam.join(LIST.out.list,by: 0),params.mincovf,params.mincovr,params.minphred20)
 STRAIN(LIST.out.list)
 map_strain=STATS.out.stats.join(STRAIN.out.strain,by:0).map{id,file1,file2 -> tuple(file1,file2)}.collect()
 old_map=channel.fromPath('OUTPUT/Mapping_Classification_clean.tab')
@@ -121,8 +144,8 @@ map_strain=map_strain.concat(old_map).collect()
 
 
 if (params.extra){
-DEL(MAPPING.out.bam,params.reff,params.bed,params.bedix)
-DEPTH(MAPPING.out.bam,params.tgene)
+DEL(mapped.bam,params.reff,params.bed,params.bedix)
+DEPTH(mapped.bam,params.tgene)
 MUT_CORRECTION(VARIANTS_LOW.out.var_low)
 delly=DEL.out.map{id,file -> file}
 old_del=channel.fromPath('OUTPUT/DELETIONS.tab')
