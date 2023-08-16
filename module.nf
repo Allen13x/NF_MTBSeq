@@ -15,13 +15,29 @@ output:
 	tuple val(replicateId), path('*150bp_R1.fastq.gz'), path('*150bp_R2.fastq.gz')
 script:
 """
+
 for i in *_R2*.fastq.gz; do basename=`ls \$i | cut -d "_" -f 1`;mv \$i \${basename}_ILL-Q${minbqual}-RP${r}-PH${minphred20}_150bp_R2.fastq.gz; done
 for i in *_R1*.fastq.gz; do basename=`ls \$i | cut -d "_" -f 1`; mv \$i \${basename}_ILL-Q${minbqual}-RP${r}-PH${minphred20}_150bp_R1.fastq.gz; done
-"""
 
+"""
 }
 
-
+process COLLECT_READS_ONT {
+cpus 1
+tag "$replicateId"
+input:
+	tuple val(replicateId), path(reads) 
+	val SEQ
+	val minbqual
+	val r
+	val minphred20
+output:
+	tuple val(replicateId), path('*nbp_ONT.fastq.gz')
+script:
+"""
+for i in *.fastq.gz; do basename=`ls \$i | cut -d "_" -f 1`; mv \$i \${basename}_${SEQ}-Q${minbqual}-RP${r}-PH${minphred20}_nbp_ONT.fastq.gz; done
+"""
+}
 
 /*
 * Bam
@@ -43,14 +59,55 @@ output:
 	val 'done', emit:done
 script:
 """
+
+
 USER=a perl /opt/conda/bin/MTBseq --step TBbwa --threads ${task.cpus} --ref ${ref}|| echo "processed \$?"
 ln -s Bam/*bam* .
-#touch ${replicateId}_a.bam
-#touch ${replicateId}_a.bam.bai
-#mkdir Bam
+
+
 
 """
 }
+
+
+
+
+process MAPPING_ONT {
+//errorStrategy 'ignore'
+cpus 8
+memory "20GB"
+//conda "--copy bioconda::mtbseq"
+tag "$replicateId"
+publishDir "Bam", mode:'copy', pattern: "*bam*"
+input:
+	tuple val(replicateId), path(reads)
+        val(ref)
+output:
+	tuple val(replicateId), path("Bam"), emit: BAM
+	tuple val(replicateId), path("*bam*"), emit: bam
+	val 'done', emit:done
+script:
+"""
+mkdir Bam
+bwa mem -t ${task.cpus} /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta *.fastq.gz > Bam/${replicateId}.sam 2>> Bam/${replicateId}.bamlog
+samtools view -@ ${task.cpus} -b -T /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta -o Bam/${replicateId}.bam Bam/${replicateId}.sam 2>> Bam/${replicateId}.bamlog
+samtools sort -@ ${task.cpus} -T /tmp/${replicateId}.sorted -o Bam/${replicateId}.sorted.bam Bam/${replicateId}.bam 2>> Bam/${replicateId}.bamlog
+samtools index -b Bam/${replicateId}.sorted.bam 2>> Bam/${replicateId}.bamlog
+samtools rmdup Bam/${replicateId}.sorted.bam Bam/${replicateId}.nodup.bam 2>> Bam/${replicateId}.bamlog
+samtools index -b Bam/${replicateId}.nodup.bam 2>> Bam/${replicateId}.bamlog
+
+rm Bam/${replicateId}.sam Bam/${replicateId}.bam Bam/${replicateId}.sorted.bam Bam/${replicateId}.sorted.bam.bai
+
+mv Bam/${replicateId}.nodup.bam Bam/${replicateId}_nBP.bam
+mv Bam/${replicateId}.nodup.bam.bai Bam/${replicateId}_nBP.bam.bai
+ln -s Bam/*bam* .
+"""
+}
+
+
+
+
+
 
 
 /*
@@ -78,10 +135,50 @@ mkdir Bam
 mv *bam* Bam/
 USER=a perl /opt/conda/bin/MTBseq --step TBrefine --threads ${task.cpus} --ref ${ref} || echo "processed \$?"
 ln -s GATK_Bam/* .
-#touch ${replicateId}_a.gatk.bam ${replicateId}_a.gatk.bai
 
 """
 }
+
+
+process REFINE_ONT {
+cpus 8
+memory "20GB"
+//conda "--copy bioconda::mtbseq"
+tag "$replicateId"
+publishDir "GATK_Bam", mode:'copy', pattern: "*gatk*"
+input:
+        tuple val(replicateId), path(bam1)
+        val(ref)
+        path(ascii)
+output:
+        tuple val(replicateId), path("*gatk*"), emit: gatk
+        tuple val(replicateId), path("GATK_Bam"), emit: GATK_Bam
+	val 'done', emit:done
+script:
+"""
+mkdir GATK_Bam
+mkdir Bam
+mkdir temp_Bam
+mv *bam* Bam/
+cat <(samtools view -H Bam/${replicateId}_nBP.bam) <(paste <(samtools view Bam/${replicateId}_nBP.bam | cut -f1-10 ) <(samtools view Bam/${replicateId}_nBP.bam | cut -f 11 | tr "\$(cat ${ascii})" "K")) | samtools view -b -o temp_Bam/${replicateId}_dump.bam -
+picard AddOrReplaceReadGroups I=temp_Bam/${replicateId}_dump.bam O=temp_Bam/${replicateId}_final.bam RGPU=unit1 RGID=11 RGLB=LaneX RGSM=AnySampleName RGPL=illumina 2>> GATK_Bam/${replicateId}.gatk.bamlog || echo "processed \$?"
+samtools index temp_Bam/${replicateId}_final.bam
+
+gatk3 -Xmx30g --analysis_type RealignerTargetCreator --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file temp_Bam/${replicateId}_final.bam --downsample_to_coverage 10000 --num_threads ${task.cpus} --out GATK_Bam/${replicateId}.gatk.intervals 2>> GATK_Bam/${replicateId}.gatk.bamlog
+gatk3 -Xmx30g --analysis_type IndelRealigner --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file temp_Bam/${replicateId}_final.bam --defaultBaseQualities 4 --targetIntervals GATK_Bam/${replicateId}.gatk.intervals --noOriginalAlignmentTags --out GATK_Bam/${replicateId}.realigned.bam 2>> GATK_Bam/${replicateId}.gatk.bamlog
+gatk3 -Xmx30g --analysis_type BaseRecalibrator --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file GATK_Bam/${replicateId}.realigned.bam --knownSites /opt/conda/share/mtbseq-1.0.4-2/var/res/MTB_Base_Calibration_List.vcf --maximum_cycle_value 400000  --num_cpu_threads_per_data_thread ${task.cpus} --out GATK_Bam/${replicateId}.gatk.grp 2>>GATK_Bam/${replicateId}.gatk.bamlog
+gatk3 -Xmx30g -T --analysis_type PrintReads --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file GATK_Bam/${replicateId}.realigned.bam --BQSR GATK_Bam/${replicateId}.gatk.grp --num_cpu_threads_per_data_thread ${task.cpus} --out GATK_Bam/${replicateId}_nBP.gatk.bam 2>> GATK_Bam/${replicateId}.gatk.bamlog
+samtools index GATK_Bam/${replicateId}_nBP.gatk.bam
+rm GATK_Bam/*.realigned.*
+rm -r temp_Bam
+ln -s GATK_Bam/* .
+"""
+}
+
+
+
+
+
 
 
 /*
@@ -107,6 +204,32 @@ mkdir Mpileup
 mkdir GATK_Bam
 mv *gatk* GATK_Bam
 USER=a perl /opt/conda/bin/MTBseq --step TBpile --threads 8 --ref ${ref} || echo "processed \$?"
+ln -s Mpileup/* .
+"""
+}
+
+
+
+process PILE_ONT {
+memory "20GB"
+cpus 8
+//conda "--copy bioconda::mtbseq"
+tag "$replicateId"
+publishDir "Mpileup", mode:'copy', pattern: "*mpileup*"
+input:
+        tuple val(replicateId), path(bam)
+        val(ref)
+        val(minbqual)
+output:
+        tuple val(replicateId), path("*mpileup*"), emit: mpile
+        tuple val(replicateId), path("Mpileup"), emit: MPILE
+	val 'done', emit:done
+script:
+"""
+mkdir Mpileup
+mkdir GATK_Bam
+mv *gatk* GATK_Bam
+samtools mpileup -B -A -x -Q ${minbqual} -f /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta -o Mpileup/${replicateId}_nBP.gatk.mpileup GATK_Bam/${replicateId}_nBP.gatk.bam
 ln -s Mpileup/* .
 """
 }
