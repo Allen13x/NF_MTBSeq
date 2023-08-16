@@ -162,7 +162,7 @@ mkdir Bam
 mkdir temp_Bam
 ss=\$(ls -1 *bam | cut -f2 -d '_' | sort -u)
 mv *bam* Bam/
-cat <(samtools view -H Bam/${replicateId}_\${ss}_\${ss}_nBP.bam) <(paste <(samtools view Bam/${replicateId}_\${ss}_\${ss}_nBP.bam | cut -f1-10 ) <(samtools view Bam/${replicateId}_\${ss}_nBP.bam | cut -f 11 | tr "\$(cat ${ascii})" "K")) | samtools view -b -o temp_Bam/${replicateId}_\${ss}_dump.bam -
+cat <(samtools view -H Bam/${replicateId}_\${ss}_nBP.bam) <(paste <(samtools view Bam/${replicateId}_\${ss}_nBP.bam | cut -f1-10 ) <(samtools view Bam/${replicateId}_\${ss}_nBP.bam | cut -f 11 | tr "\$(cat ${ascii})" "K")) | samtools view -b -o temp_Bam/${replicateId}_\${ss}_dump.bam -
 picard AddOrReplaceReadGroups I=temp_Bam/${replicateId}_\${ss}_dump.bam O=temp_Bam/${replicateId}_\${ss}_final.bam RGPU=unit1 RGID=11 RGLB=LaneX RGSM=AnySampleName RGPL=illumina 2>> GATK_Bam/${replicateId}_\${ss}.gatk.bamlog || echo "processed \$?"
 samtools index temp_Bam/${replicateId}_\${ss}_final.bam
 
