@@ -88,6 +88,7 @@ output:
 	val 'done', emit:done
 script:
 """
+ss=\$(ls -1 *fastq.gz | cut -f2 -d '_'= 
 mkdir Bam
 bwa mem -t ${task.cpus} /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta *.fastq.gz > Bam/${replicateId}.sam 2>> Bam/${replicateId}.bamlog
 samtools view -@ ${task.cpus} -b -T /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta -o Bam/${replicateId}.bam Bam/${replicateId}.sam 2>> Bam/${replicateId}.bamlog
@@ -98,8 +99,8 @@ samtools index -b Bam/${replicateId}.nodup.bam 2>> Bam/${replicateId}.bamlog
 
 rm Bam/${replicateId}.sam Bam/${replicateId}.bam Bam/${replicateId}.sorted.bam Bam/${replicateId}.sorted.bam.bai
 
-mv Bam/${replicateId}.nodup.bam Bam/${replicateId}_nBP.bam
-mv Bam/${replicateId}.nodup.bam.bai Bam/${replicateId}_nBP.bam.bai
+mv Bam/${replicateId}.nodup.bam Bam/${replicateId}_${ss}_nBP.bam
+mv Bam/${replicateId}.nodup.bam.bai Bam/${replicateId}_\${ss}_nBP.bam.bai
 ln -s Bam/*bam* .
 """
 }
@@ -159,16 +160,17 @@ script:
 mkdir GATK_Bam
 mkdir Bam
 mkdir temp_Bam
+ss=\$(ls -1 *bam | cut -f2 -d '_' | sort -u)
 mv *bam* Bam/
-cat <(samtools view -H Bam/${replicateId}_nBP.bam) <(paste <(samtools view Bam/${replicateId}_nBP.bam | cut -f1-10 ) <(samtools view Bam/${replicateId}_nBP.bam | cut -f 11 | tr "\$(cat ${ascii})" "K")) | samtools view -b -o temp_Bam/${replicateId}_dump.bam -
-picard AddOrReplaceReadGroups I=temp_Bam/${replicateId}_dump.bam O=temp_Bam/${replicateId}_final.bam RGPU=unit1 RGID=11 RGLB=LaneX RGSM=AnySampleName RGPL=illumina 2>> GATK_Bam/${replicateId}.gatk.bamlog || echo "processed \$?"
-samtools index temp_Bam/${replicateId}_final.bam
+cat <(samtools view -H Bam/${replicateId}_\${ss}_\${ss}_nBP.bam) <(paste <(samtools view Bam/${replicateId}_\${ss}_\${ss}_nBP.bam | cut -f1-10 ) <(samtools view Bam/${replicateId}_\${ss}_nBP.bam | cut -f 11 | tr "\$(cat ${ascii})" "K")) | samtools view -b -o temp_Bam/${replicateId}_\${ss}_dump.bam -
+picard AddOrReplaceReadGroups I=temp_Bam/${replicateId}_\${ss}_dump.bam O=temp_Bam/${replicateId}_\${ss}_final.bam RGPU=unit1 RGID=11 RGLB=LaneX RGSM=AnySampleName RGPL=illumina 2>> GATK_Bam/${replicateId}_\${ss}.gatk.bamlog || echo "processed \$?"
+samtools index temp_Bam/${replicateId}_\${ss}_final.bam
 
-gatk3 -Xmx30g --analysis_type RealignerTargetCreator --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file temp_Bam/${replicateId}_final.bam --downsample_to_coverage 10000 --num_threads ${task.cpus} --out GATK_Bam/${replicateId}.gatk.intervals 2>> GATK_Bam/${replicateId}.gatk.bamlog
-gatk3 -Xmx30g --analysis_type IndelRealigner --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file temp_Bam/${replicateId}_final.bam --defaultBaseQualities 4 --targetIntervals GATK_Bam/${replicateId}.gatk.intervals --noOriginalAlignmentTags --out GATK_Bam/${replicateId}.realigned.bam 2>> GATK_Bam/${replicateId}.gatk.bamlog
-gatk3 -Xmx30g --analysis_type BaseRecalibrator --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file GATK_Bam/${replicateId}.realigned.bam --knownSites /opt/conda/share/mtbseq-1.0.4-2/var/res/MTB_Base_Calibration_List.vcf --maximum_cycle_value 400000  --num_cpu_threads_per_data_thread ${task.cpus} --out GATK_Bam/${replicateId}.gatk.grp 2>>GATK_Bam/${replicateId}.gatk.bamlog
-gatk3 -Xmx30g -T --analysis_type PrintReads --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file GATK_Bam/${replicateId}.realigned.bam --BQSR GATK_Bam/${replicateId}.gatk.grp --num_cpu_threads_per_data_thread ${task.cpus} --out GATK_Bam/${replicateId}_nBP.gatk.bam 2>> GATK_Bam/${replicateId}.gatk.bamlog
-samtools index GATK_Bam/${replicateId}_nBP.gatk.bam
+gatk3 -Xmx30g --analysis_type RealignerTargetCreator --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file temp_Bam/${replicateId}_\${ss}_final.bam --downsample_to_coverage 10000 --num_threads ${task.cpus} --out GATK_Bam/${replicateId}_\${ss}.gatk.intervals 2>> GATK_Bam/${replicateId}_\${ss}.gatk.bamlog
+gatk3 -Xmx30g --analysis_type IndelRealigner --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file temp_Bam/${replicateId}_\${ss}_final.bam --defaultBaseQualities 4 --targetIntervals GATK_Bam/${replicateId}_\${ss}.gatk.intervals --noOriginalAlignmentTags --out GATK_Bam/${replicateId}_\${ss}.realigned.bam 2>> GATK_Bam/${replicateId}_\${ss}.gatk.bamlog
+gatk3 -Xmx30g --analysis_type BaseRecalibrator --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file GATK_Bam/${replicateId}_\${ss}.realigned.bam --knownSites /opt/conda/share/mtbseq-1.0.4-2/var/res/MTB_Base_Calibration_List.vcf --maximum_cycle_value 400000  --num_cpu_threads_per_data_thread ${task.cpus} --out GATK_Bam/${replicateId}_\${ss}.gatk.grp 2>>GATK_Bam/${replicateId}_\${ss}.gatk.bamlog
+gatk3 -Xmx30g -T --analysis_type PrintReads --reference_sequence /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta --input_file GATK_Bam/${replicateId}_\${ss}.realigned.bam --BQSR GATK_Bam/${replicateId}_\${ss}.gatk.grp --num_cpu_threads_per_data_thread ${task.cpus} --out GATK_Bam/${replicateId}_\${ss}_nBP.gatk.bam 2>> GATK_Bam/${replicateId}_\${ss}.gatk.bamlog
+samtools index GATK_Bam/${replicateId}_\${ss}_nBP.gatk.bam
 rm GATK_Bam/*.realigned.*
 rm -r temp_Bam
 ln -s GATK_Bam/* .
@@ -228,8 +230,9 @@ script:
 """
 mkdir Mpileup
 mkdir GATK_Bam
+ss=\$(ls -1 *bam | cut -f2 -d '_' | sort -u)
 mv *gatk* GATK_Bam
-samtools mpileup -B -A -x -Q ${minbqual} -f /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta -o Mpileup/${replicateId}_nBP.gatk.mpileup GATK_Bam/${replicateId}_nBP.gatk.bam
+samtools mpileup -B -A -x -Q ${minbqual} -f /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta -o Mpileup/${replicateId}_\${ss}_nBP.gatk.mpileup GATK_Bam/${replicateId}_\${ss}_nBP.gatk.bam
 ln -s Mpileup/* .
 """
 }
