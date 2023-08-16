@@ -13,9 +13,9 @@ autoMounts = true
 	params.mincovr	= "4"
 	params.ref="M._tuberculosis_H37Rv_2015-11-13"
 	params.reff = "${baseDir}/${params.ref}.fasta"
-	params.bed = "REF/h37rv_ups_ordered.bed.gz"
-	params.bedix= "REF/h37rv_ups_ordered.bed.gz.tbi"
-	params.tgene="REF/target_genes.bed"
+	params.bed = "$baseDir/REF/h37rv_ups_ordered.bed.gz"
+	params.bedix= "$baseDir/REF/h37rv_ups_ordered.bed.gz.tbi"
+	params.tgene="$baseDir/REF/target_genes.bed"
 	params.pharma=false
 	params.pgene="$baseDir/REF/gene_drug.csv"
 	params.tdrug=10
@@ -134,11 +134,9 @@ REFINE_ONT(MAPPING_ONT.out.bam,params.ref,params.ascii)
 refined=REFINE_ONT.out
 PILE_ONT(REFINE_ONT.out.gatk,params.ref,params.minbqual)
 piled=PILE_ONT.out}
-
 LIST(piled.mpile,params.minbqual,params.ref)
 VARIANTS_LOW(LIST.out.list,params.ref)
 VARIANTS(LIST.out.list,params.mincovf,params.mincovr,params.minphred20,params.ref)
-
 STATS(mapped.bam.join(LIST.out.list,by: 0),params.mincovf,params.mincovr,params.minphred20)
 STRAIN(LIST.out.list)
 map_strain=STATS.out.stats.join(STRAIN.out.strain,by:0).map{id,file1,file2 -> tuple(file1,file2)}.collect()
