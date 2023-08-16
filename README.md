@@ -52,5 +52,6 @@ picard CreateSequenceDictionary -R /opt/conda/share/mtbseq-1.0.4-2/var/ref/NEWGE
 
 ## Future Plans
 
-Implentation for Long Reads from Oxford Nanopore Technology
+-	Implentation for Hybrid reads
+-	Graphic tree
 
