@@ -65,6 +65,9 @@ include{COLLECT_READS;
 workflow {
 if (params.h){
 log.info """
+  --SEQ		Sequencing technology:
+				  ILL: Illumina [default]
+				  ONT: Oxford Nanopore technology  
   --ref        Reference Genome to use:
                   M._abscessus_CIP-104536T_2014-02-03
                   M._chimaera_DSM44623_2016-01-28
