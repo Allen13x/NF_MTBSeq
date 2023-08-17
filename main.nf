@@ -155,11 +155,11 @@ deletion=DEL_ONT.out}
 DEPTH(mapped.bam,params.tgene)
 MUT_CORRECTION(VARIANTS_LOW.out.var_low)
 delly=deletion.map{id,file -> file}
-old_del=channel.fromPath('OUTPUT/DELETIONS.tab')
+old_del=channel.fromPath('OUTPUT/DELETIONS.*')
 delly=delly.concat(old_del).collect()
 OUT_DEL(delly)
 depth=DEPTH.out.map{id,file->file}
-old_cov=channel.fromPath('OUTPUT/GB_cov.csv')
+old_cov=channel.fromPath('OUTPUT/GB_cov.*')
 depth=depth.concat(old_cov).collect()
 OUT_DEPTH(depth)
 mut=MUT_CORRECTION.out
