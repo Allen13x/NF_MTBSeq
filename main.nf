@@ -88,7 +88,8 @@ log.info """
 if (params.pharma){
 
 PHARMA(Channel.fromPath('Called/*corrected.tab').collect(),params.tdrug,params.pgene)
-
+WHO(MUT_GATHER.out,params.dhead,params.WHO)
+OUT_WHO(WHO.out)
 
 }
 else{
