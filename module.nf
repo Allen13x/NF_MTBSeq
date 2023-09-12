@@ -717,7 +717,7 @@ genes %>%
                          paste('r[',Start,'-',Stop,']',sep='')),
             Locus=Gene,`#Pos`=as.numeric(i),
             Start1=ifelse(S=='rev',max(Start,Stop),min(Start,Stop)),
-            Start=Start,Stop=Stop) %>% 
+            Start=Start,Stop=Stop,S=S) %>% 
   right_join(p) %>% 
   select(Name,Range,Locus,`#Pos`,ID,Start1,Freq,Ref,Allel,Type,Subst,Start,Stop,S) %>%
   mutate(
