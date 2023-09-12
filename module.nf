@@ -722,7 +722,7 @@ genes %>%
   select(Name,Range,Locus,`#Pos`,ID,Start1,Freq,Ref,Allel,Type,Subst,Start,Stop,S) %>%
   mutate(
     Type=ifelse(Type=='SNP',Type,paste('__',Type,sep='')),
-    Mut=case_when((str_detect(Name,'_ups')& S=='rev')~paste0(Ref,'-',abs(`#Pos`-Start),Allel,'-',`#Pos`),
+    Mut=case_when((str_detect(Name,'_ups')& S=='rev')~paste0(Ref,'-',abs(`#Pos`-Start)+1,Allel,'-',`#Pos`),
                   (str_detect(Name,'_ups'))~paste0(Ref,'-',abs(`#Pos`-Stop)+1,Allel,'-',`#Pos`),
                        (Subst!=' ')~str_remove(Subst,' .*'),
                   (Type=='SNP')~paste0(`#Pos`,'_',Ref,'>',Allel,'_',Type),
