@@ -719,7 +719,7 @@ genes %>%
             Start1=ifelse(S=='rev',max(Start,Stop),min(Start,Stop)),
             Start=Start,Stop=Stop) %>% 
   right_join(p) %>% 
-  select(Name,Range,Locus,`#Pos`,ID,Start1,Freq,Ref,Allel,Type,Subst,Start,Stop) %>%
+  select(Name,Range,Locus,`#Pos`,ID,Start1,Freq,Ref,Allel,Type,Subst,Start,Stop,S) %>%
   mutate(
     Type=ifelse(Type=='SNP',Type,paste('__',Type,sep='')),
     Mut=case_when((str_detect(Name,'_ups')& S=='rev')~paste0(Ref,'-',abs(`#Pos`-Start),Allel,'-',`#Pos`),
