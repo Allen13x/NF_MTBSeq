@@ -5,6 +5,7 @@
 process COLLECT_READS {
 cpus 1
 tag "$replicateId"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 input:
 	tuple val(replicateId), path(reads) 
 	val SEQ
@@ -47,7 +48,7 @@ process MAPPING {
 //errorStrategy 'ignore'
 cpus 8
 memory "20GB"
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "Bam", mode:'copy', pattern: "*bam*"
 input:
@@ -76,7 +77,7 @@ process MAPPING_ONT {
 //errorStrategy 'ignore'
 cpus 8
 memory "20GB"
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "Bam", mode:'copy', pattern: "*bam*"
 input:
@@ -119,7 +120,7 @@ ln -s Bam/*bam* .
 process REFINE {
 cpus 8
 memory "20GB"
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "GATK_Bam", mode:'copy', pattern: "*gatk*"
 input:
@@ -144,7 +145,7 @@ ln -s GATK_Bam/* .
 process REFINE_ONT {
 cpus 8
 memory "20GB"
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "GATK_Bam", mode:'copy', pattern: "*gatk*"
 input:
@@ -190,7 +191,7 @@ ln -s GATK_Bam/* .
 process PILE {
 memory "20GB"
 cpus 8
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "Mpileup", mode:'copy', pattern: "*mpileup*"
 input:
@@ -215,7 +216,7 @@ ln -s Mpileup/* .
 process PILE_ONT {
 memory "20GB"
 cpus 8
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "Mpileup", mode:'copy', pattern: "*mpileup*"
 input:
@@ -244,7 +245,7 @@ ln -s Mpileup/* .
 process LIST {
 memory "20GB"
 cpus 8
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "Position_Tables", mode:'copy', pattern: "*position_table*"
 input:
@@ -271,7 +272,7 @@ ln -s Position_Tables/* .
 process VARIANTS_LOW {
 memory "20GB"
 cpus 1
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "Called", mode:'copy', pattern: "*tab"
 input:
@@ -298,7 +299,7 @@ ln -s Called/* .
 process VARIANTS {
 memory "20GB"
 cpus 1
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "Called", mode:'copy', pattern: "*tab"
 input:
@@ -325,7 +326,7 @@ ln -s Called/* .
 process STATS {
 memory "20GB"
 cpus 1
-//conda "--copy bioconda::mtbseq"
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 //publishDir "Statistics", mode:'copy', pattern: "*tab"
 input:
@@ -354,6 +355,7 @@ ln -s Statistics/* .
 process JOIN {
 memory "60GB"
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 publishDir "Joint", mode: "copy", pattern: "Joint/*"
 publishDir "Amend", mode: "copy", pattern: "Amend/*"
 publishDir "Groups", mode: "copy", pattern: "Groups/*"
@@ -387,6 +389,7 @@ USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --ref ${ref} --sample
 process STRAIN {
 memory "20GB"
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
 publishDir "Classification", mode:'copy', pattern: "*tab"
 input:
@@ -411,6 +414,7 @@ ln -s Classification/* .
 process MAP_STRAIN{
 memory '5GB'
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 publishDir "OUTPUT", mode: 'copy', pattern: "Mapping_Classification.tab"
 input:
 	path(stats)
@@ -433,6 +437,7 @@ mv Mapping_Classification.tab.tmp Mapping_Classification.tab
 process DEL {
 tag "$replicateId"
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory '20GB'
 input:
 	tuple val(replicateId), path(bam)
@@ -453,6 +458,7 @@ bcftools annotate -a ${bed} -c CHROM,FROM,TO,GENE -h <(echo '##INFO=<ID=GENE,Num
 process DEL_ONT {
 tag "$replicateId"
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory '20GB'
 input:
 	tuple val(replicateId), path(bam)
@@ -472,6 +478,7 @@ bcftools annotate -a ${bed} -c CHROM,FROM,TO,GENE -h <(echo '##INFO=<ID=GENE,Num
 
 process OUT_DEL {
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory '20GB'
 publishDir 'OUTPUT', mode: "copy", pattern: "DELETIONS.tab"
 input:
@@ -494,6 +501,7 @@ sort -k1,1 -k2,2 -n -u -o DELETIONS.tab DELETIONS.tab
 
 process DEPTH {
 cpus 8
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory "40GB"
 tag "$replicateId"
 input:
@@ -517,6 +525,7 @@ rm ${replicateId}*
 
 process OUT_DEPTH {
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory '20GB'
 publishDir 'OUTPUT', mode: "copy", pattern: "GB_cov.csv"
 input:
@@ -536,6 +545,7 @@ sort -k2 -r -t ';' -o GB_cov.csv GB_cov.csv
 
 process MUT_CORRECTION {
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory "20GB"
 tag "$replicateId"
 publishDir "Called", mode:'copy', pattern: "*corrected.tab"
@@ -626,6 +636,7 @@ write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
 
 process MUT_GATHER{
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory "10GB"
 input:
         path(tabs)
@@ -650,6 +661,7 @@ write_delim('all_cf1N.tab',delim='\\t',col_names = F)
 
 process PHARMA {
 cpus 1
+container "library://allen13x/mtbseq/nf_mtbseq:1.0.0"
 memory "10GB"
 publishDir "Called", mode: 'copy', pattern: 'pharma_gene*'
 publishDir "OUTPUT", mode: 'copy', pattern: '*format*'
@@ -704,12 +716,13 @@ genes %>%
                          paste('r[',Stop,'-',Start,']',sep=''),
                          paste('r[',Start,'-',Stop,']',sep='')),
             Locus=Gene,`#Pos`=as.numeric(i),
-            Start=ifelse(S=='rev',max(Start,Stop),min(Start,Stop))) %>% 
+            Start1=ifelse(S=='rev',max(Start,Stop),min(Start,Stop))) %>% 
   right_join(p) %>% 
-  select(Name,Range,Locus,`#Pos`,ID,Start,Freq,Ref,Allel,Type,Subst) %>%
+  select(Name,Range,Locus,`#Pos`,ID,Start1,Freq,Ref,Allel,Type,Subst,Start,Stop) %>%
   mutate(
     Type=ifelse(Type=='SNP',Type,paste('__',Type,sep='')),
-    Mut=case_when(str_detect(Name,'_ups')~paste0(Ref,'-',abs(`#Pos`-Start),Allel,'-',`#Pos`),
+    Mut=case_when((str_detect(Name,'_ups')& S=='rev')~paste0(Ref,'-',abs(`#Pos`-Start),Allel,'-',`#Pos`),
+                  (str_detect(Name,'_ups'))~paste0(Ref,'-',abs(`#Pos`-Stop),Allel,'-',`#Pos`),
                        (Subst!=' ')~str_remove(Subst,' .*'),
                   (Type=='SNP')~paste0(`#Pos`,'_',Ref,'>',Allel,'_',Type),
                   (Type!='SNP')~paste0(`#Pos`,'_',str_to_upper(Type))),
@@ -750,6 +763,7 @@ write_delim('pharma_gene.tab',delim='\\t',col_names=F)
 
 process  WHO {
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory "10GB"
 input:
         path(tab)
@@ -939,6 +953,7 @@ A5b.to_csv('WHO_raw.csv',index=False, sep=';')
 
 process OUT_WHO {
 cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory "20G"
 publishDir "OUTPUT", mode: 'copy', pattern: 'res_WHO.csv'
 input:
