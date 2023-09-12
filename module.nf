@@ -723,7 +723,7 @@ genes %>%
   mutate(
     Type=ifelse(Type=='SNP',Type,paste('__',Type,sep='')),
     Mut=case_when((str_detect(Name,'_ups')& S=='rev')~paste0(Ref,'-',abs(`#Pos`-Start),Allel,'-',`#Pos`),
-                  (str_detect(Name,'_ups'))~paste0(Ref,'-',abs(`#Pos`-Stop),Allel,'-',`#Pos`),
+                  (str_detect(Name,'_ups'))~paste0(Ref,'-',abs(`#Pos`-Stop)+1,Allel,'-',`#Pos`),
                        (Subst!=' ')~str_remove(Subst,' .*'),
                   (Type=='SNP')~paste0(`#Pos`,'_',Ref,'>',Allel,'_',Type),
                   (Type!='SNP')~paste0(`#Pos`,'_',str_to_upper(Type))),
