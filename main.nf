@@ -145,7 +145,7 @@ STRAIN(LIST.out.list)
 map_strain=STATS.out.stats.join(STRAIN.out.strain,by:0).map{id,file1,file2 -> tuple(file1,file2)}.collect()
 old_map=channel.fromPath('OUTPUT/Mapping_Classification_clean.tab')
 map_strain=map_strain.concat(old_map).collect()
-
+MAP_STRAIN(map_strain)
 
 if (params.extra){
 if (params.SEQ == "ILL"){	
@@ -170,7 +170,6 @@ mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
 //mut.view()
 MUT_GATHER(mut)
 PHARMA(mut,"10",params.pgene)
-MAP_STRAIN(map_strain)
 WHO(MUT_GATHER.out,params.dhead,params.WHO)
 OUT_WHO(WHO.out)
 }
