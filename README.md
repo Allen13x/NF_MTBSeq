@@ -37,6 +37,7 @@ This will perform the basic single-sample-level characterizion from MTBseq pipel
   -proj       Name of the project for joint analysis [default: def]
   -pharma     Perform Drug resistance analysis at Custom frequencies (to use after first round of analysis) [default: false]
   -tdrug      Custom frequencies % [default: 10]
+  -WHO        Path to the WHO catalogue file formatted (Default = Catalogue v1)
   -extra      Perform extra analysis [default: true]:
                  Deletion/Insertion detection with Delly2
                  Sequencing depth with Mosdepth
