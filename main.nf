@@ -66,9 +66,9 @@ include{COLLECT_READS;
 workflow {
 if (params.h){
 log.info """
-  --SEQ		Sequencing technology:
-				  ILL: Illumina [default]
-				  ONT: Oxford Nanopore technology  
+  --SEQ		    Sequencing technology:
+				          ILL: Illumina [default]
+				          ONT: Oxford Nanopore technology  
   --ref        Reference Genome to use:
                   M._abscessus_CIP-104536T_2014-02-03
                   M._chimaera_DSM44623_2016-01-28
@@ -79,10 +79,11 @@ log.info """
   --proj       Name of the project for joint analysis [default: def]
   --pharma     Perform Drug resistance analysis at Custom frequencies (to use after first round of analysis) [default: false]
   --tdrug      Custom frequencies % [default: 10]
+  --WHO        Path to the WHO catalogue file formatted (Default = Catalogue v1)
   --extra      Perform extra analysis [default: true]:
                  Deletion/Insertion detection with Delly2
                  Sequencing depth with Mosdepth
-                 Pharma analysis at 10% and Comparison with WHO catalogue   
+                 Pharma analysis at 10% and Comparison with WHO catalogue              
 """
 }else{
 if (params.pharma){
