@@ -649,6 +649,7 @@ library(tidyverse)
 files <- list.files(path = ".", pattern = "corrected.tab")
 lapply(files, function(x){
     read_delim(x,delim='\\t') %>%
+    mutate(across(everything(),as.character))%>%
     mutate(File=str_remove_all(x,'_.*'))%>%
     relocate(File)
 })->l
