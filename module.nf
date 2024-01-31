@@ -687,6 +687,7 @@ files <- list.files(path = ".", pattern = "corrected.tab")
 
 lapply(files, function(x){
     read_delim(x,delim='\\t') %>%
+    mutate(across(everything(),as.character))%>%
     filter(Freq>=t) %>%
     mutate(ID=str_remove_all(x,'_.*'))
 })->l
