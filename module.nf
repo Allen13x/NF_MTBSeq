@@ -649,7 +649,7 @@ script:
 library(tidyverse)
 files <- list.files(path = ".", pattern = "corrected.tab")
 lapply(files, function(x){
-    read_delim(x,delim='\\t') %>%
+    read_delim(x,delim='\\t',
     col_types='nncccnnnnnccccc') %>%
     mutate(File=str_remove_all(x,'_.*'))%>%
     relocate(File)
