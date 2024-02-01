@@ -437,6 +437,7 @@ mv Mapping_Classification.tab.tmp Mapping_Classification.tab
 process DEL {
 tag "$replicateId"
 cpus 1
+errorStrategy 'ignore'
 container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory '20GB'
 input:
