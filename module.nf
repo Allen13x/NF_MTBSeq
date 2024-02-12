@@ -424,10 +424,10 @@ script:
 """
 for i in \$(ls -1 *Mapping_and_Variant_Statistics* | cut -f1 -d '_' | sort -u)
 do
-paste \${i}_Mapp* \${i}_Strain* >> Mapping_Classification.tab
+paste \${i}_Mapp* \${i}_Strain* | cut --complement -f1,25  >> Mapping_Classification.tab
 done
 
-sort -u -r -k2 Mapping_Classification.tab | cut --complement -f1,25 |uniq >Mapping_Classification.tab.tmp
+sort -u -r -k1 Mapping_Classification.tab | uniq >Mapping_Classification.tab.tmp
 mv Mapping_Classification.tab.tmp Mapping_Classification.tab
 
 """
