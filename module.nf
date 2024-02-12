@@ -328,7 +328,7 @@ memory "20GB"
 cpus 1
 container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 tag "$replicateId"
-//publishDir "Statistics", mode:'copy', pattern: "*tab"
+publishDir "Statistics", mode:'copy', pattern: "*tab"
 input:
         tuple val(replicateId), path(bam), path(list)
 		val(mincovf)
