@@ -144,7 +144,7 @@ VARIANTS(LIST.out.list,params.mincovf,params.mincovr,params.minphred20,params.re
 STATS(mapped.bam.join(LIST.out.list,by: 0),params.mincovf,params.mincovr,params.minphred20)
 STRAIN(LIST.out.list)
 map_strain=STATS.out.stats.join(STRAIN.out.strain,by:0).map{id,file1,file2 -> tuple(file1,file2)}.collect()
-old_map=channel.fromPath('OUTPUT/Mapping_Classification_clean.tab')
+old_map=channel.fromPath('OUTPUT/Mapping_Classification.tab')
 map_strain=map_strain.concat(old_map).collect()
 MAP_STRAIN(map_strain)
 
