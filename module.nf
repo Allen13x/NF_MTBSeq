@@ -898,7 +898,7 @@ whoG['Ref']=whoG['final_annotation.ReferenceNucleotide'].str.upper()
 whoG['common_name']=whoG['final_annotation.Gene'] + '_' + whoG['final_annotation.TentativeHGVSNucleotidicAnnotation']
 
 all_whoG=pd.merge(all,whoG,on=['genome_index','Allel','Ref'])
-
+all_whoG['File'] = all_whoG['File'].astype(str)
 all_whoG.sort_values('File',inplace=True)
 
 
