@@ -489,7 +489,7 @@ output:
 script:
 """
 
-awk '{print gensub("\\.dels","","g",FILENAME),\$0}' OFS='\\t' *.dels | tr ';' '\\t' >> DELETIONS.tab
+awk '{print gensub("\\.dels","","g",FILENAME),\$0}' OFS='\\t' *.dels | tr ';' '\\t' > DELETIONS.tab
 
 
 sort -k1,1 -k2,2n -u -o DELETIONS.tab DELETIONS.tab
