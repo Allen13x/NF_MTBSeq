@@ -155,7 +155,7 @@ deletion=DEL.out}
 else{
 DEL_ONT(mapped.bam,params.ref,params.bed,params.bedix)
 deletion=DEL_ONT.out}
-old_mapped=channel.fromPath('Bam/*bam*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+old_mapped=channel.fromPath('Bam/*bam*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 old_mapped.view()
 new_mapped=mapped.bam
 mapped_bam=new_mapped.concat(old_mapped).unique{it[0]}
