@@ -24,6 +24,8 @@ M.tuberculosis_H37Rv	4326003	4327473	ethA
 M.tuberculosis_H37Rv	4327473	4327548	ethA_ups
 M.tuberculosis_H37Rv	4327548	4328199	ethR
 M.tuberculosis_H37Rv	4327473	4327548	ethR_ups
+M.tuberculosis_H37Rv	1673439	1674183	fabG1
+M.tuberculosis_H37Rv	1673339	1673439	fabG1_ups
 M.tuberculosis_H37Rv	3640542	3641538	fbiA
 M.tuberculosis_H37Rv	3640141	3640542	fbiA_ups
 M.tuberculosis_H37Rv	3641534	3642881	fbiB
