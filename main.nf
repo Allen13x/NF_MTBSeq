@@ -155,7 +155,9 @@ deletion=DEL.out}
 else{
 DEL_ONT(mapped.bam,params.ref,params.bed,params.bedix)
 deletion=DEL_ONT.out}
-DEPTH(mapped.bam,params.tgene)
+old_mapped=channel.fromPath('Bam/*.bam').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+mapped_.bam=mapped.bam.concat(old_mapped).unique{it[0]}.collect()
+DEPTH(mapped_.bam,params.tgene)
 MUT_CORRECTION(VARIANTS_LOW.out.var_low)
 delly=deletion.map{id,file -> file}
 old_del=channel.fromPath('OUTPUT/DELETIONS.*')
