@@ -158,6 +158,7 @@ deletion=DEL_ONT.out}
 old_mapped=channel.fromPath('Bam/*bam*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 new_mapped=mapped.bam
 mapped_bam=new_mapped.concat(old_mapped).unique{it[0]}
+mapped_bam.view()
 DEPTH(mapped_bam,params.tgene)
 MUT_CORRECTION(VARIANTS_LOW.out.var_low)
 delly=deletion.map{id,file -> file}
