@@ -149,16 +149,16 @@ map_strain=map_strain.concat(old_map).collect()
 MAP_STRAIN(map_strain)
 
 if (params.extra){
-if (params.SEQ == "ILL"){	
-DEL(mapped.bam,params.ref,params.bed,params.bedix)
-deletion=DEL.out}
-else{
-DEL_ONT(mapped.bam,params.ref,params.bed,params.bedix)
-deletion=DEL_ONT.out}
 old_mapped=channel.fromPath('Bam/*bam*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 //old_mapped.view()
 new_mapped=mapped.bam
 mapped_bam=new_mapped.concat(old_mapped).unique{it[0]}
+if (params.SEQ == "ILL"){	
+DEL(mapped_bam,params.ref,params.bed,params.bedix)
+deletion=DEL.out}
+else{
+DEL_ONT(mapped_bam,params.ref,params.bed,params.bedix)
+deletion=DEL_ONT.out}
 DEPTH(mapped_bam,params.tgene)
 MUT_CORRECTION(VARIANTS_LOW.out.var_low)
 delly=deletion.map{id,file -> file}
