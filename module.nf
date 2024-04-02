@@ -535,7 +535,7 @@ output:
 	path("GB_cov.csv")
 script:
 """
-for i in gbcov_*;do awk '{if (NR == 1) {print "000000",\$0} else {print gensub(".*_","","g",FILENAME),\$0} }' OFS=';' \${i}; done | sort -u -k1 -t ';' | sed 's/000000/Samples/g' >> GB_cov.csv
+for i in gbcov_*;do awk '{if (NR == 1) {print "000000",\$0} else {print gensub(".*_","","g",FILENAME),\$0} }' OFS=';' \${i}; done | sort -u -k1 -t ';' | sed 's/000000/Samples/g' > GB_cov.csv
 
 sort -u -o GB_cov.csv GB_cov.csv
 sort -k2 -r -t ';' -o GB_cov.csv GB_cov.csv

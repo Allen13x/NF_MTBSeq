@@ -11,7 +11,7 @@ M.tuberculosis_H37Rv	4038157	4040704	clpC1
 M.tuberculosis_H37Rv	4040704	4040980	clpC1_ups
 M.tuberculosis_H37Rv	3986843	3987299	ddn
 M.tuberculosis_H37Rv	3986732	3986843	ddn_ups
-M.tuberculosis_H37Rv	0	1524	dnaA
+M.tuberculosis_H37Rv	1	1524	dnaA
 M.tuberculosis_H37Rv	2714123	2715332	eis
 M.tuberculosis_H37Rv	2715332	2715471	eis_ups
 M.tuberculosis_H37Rv	4243232	4246517	embA
