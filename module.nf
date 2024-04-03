@@ -916,7 +916,7 @@ Ali=[]
 Alisubst=[]
 Alisubst5=[]
 Alisubst1=[]
-#all_whoG.to_csv("all_test.csv")
+all_whoG.to_csv("all_test.csv")
 for i in drugs_conf:
     t = i.split('_')[0]
     A[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File',i]]
