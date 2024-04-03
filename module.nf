@@ -754,7 +754,7 @@ h %>% rownames_to_column('Name') %>% as_tibble()->head
 
 
 bind_rows(list(head,tail)) %>% 
-  write_delim(paste0('pharma_gene_format_',t,'.tab'),delim='\\t',na = '')
+  write_delim(paste0('pharma_gene_format_',t,'.tab'),delim='\\t',na = '0')
 
 p%>%
 write_delim('pharma_gene.tab',delim='\\t',col_names=F)
