@@ -937,7 +937,7 @@ A5.fillna(0,inplace=True)
 A5a=A5.drop_duplicates()
 A5.to_csv("test.csv")
 #A5a['variant']=A5a['variant'] + '_FR' + A5a['Freq'].astype(str)
-A5a['variant']=np.where(A5a['variant'].str.contains("lof"),A5a['variant'] + '_' + A5a['Type'] + "L" + A5a['LOF'].astype(str),A5a['variant'])
+A5a['variant']=np.where(A5a['variant'].str.contains("lof"),A5a['variant'] + '(' + A5a['Type'] + "-" + A5a['LOF'].astype(str) + ')',A5a['variant'])
 A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
 #new=A5a[A5a['variant'].str.contains("lof")]
 #all['genome_index']
