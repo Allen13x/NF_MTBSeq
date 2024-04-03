@@ -627,7 +627,7 @@ for (i in l){
                 {if(dim(.)[1]>0) mutate(.,Insindex=0,Ref='_',Allel=Type,Type=str_to_title(Type),Subst=" ",GeneName='-', Product=" ",Freq=Freq*100,Qual20=RefR+VarR) %>%
                 select(`#Pos`=Start,Insindex,Ref,Type,Allel,Subst,Gene,GeneName,Product,Freq,Qual20)})->a}
         a%>%bind_rows(filter(unique(a%>%filter(Type != 'SNP') %>% arrange(Type, '#Pos') %>% add_count(across(everything()))) %>% ungroup() %>% mutate(Allel= case_when(n %% 3!=0 ~ 'LOF', TRUE ~as.character(Type))), Allel=='LOF')) %>%mutate(Ref=ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'_',Ref),
-                Allel=ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'Stop',Allel))->a
+                Allel=ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'STOP',Allel))->a
   a %>%
 write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
 
