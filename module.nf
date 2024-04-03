@@ -920,8 +920,8 @@ all_whoG.to_csv("all_test.csv")
 for i in drugs_conf:
     t = i.split('_')[0]
     A[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File',i]]
-    Asubst[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF',i]]
-    Asubst1[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim') | (all_whoG[i]=='3) Uncertain significance')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF',i]]
+    Asubst[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type',i]]
+    Asubst1[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim') | (all_whoG[i]=='3) Uncertain significance')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type',i]]
     Asubst5[t] = all_whoG[(all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Type','Freq',i]]
     Ali.append(A[t])
     Alisubst.append(Asubst[t])
