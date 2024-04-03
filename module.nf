@@ -940,7 +940,7 @@ A5a=A5.drop_duplicates()
 A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
 print(A5a.shape)
 new=A5a[A5a['variant'].str.contains("lof")]
-A5s=A5a.drop(A5a[A5a['variant'].str.contains("lof")].index)
+A5a=A5a.drop(A5a[A5a['variant'].str.contains("lof")].index)
 print(A5a.shape)
 #.str.contains("hello")]
 new.to_csv("test.csv")
