@@ -655,7 +655,7 @@ lapply(files, function(x){
     relocate(File)
 })->l
 bind_rows(l)%>%
-write_delim('all_cf1N.tab',delim='\\t',col_names = F)
+write_delim('all_cf1N.tab',delim='\\t',col_names = F,na='')
 """
 }
 
