@@ -935,7 +935,7 @@ A5.fillna(0,inplace=True)
 
 #A5a=A5.drop('Freq',axis=1).drop_duplicates()
 A5a=A5.drop_duplicates()
-print(A5)
+A5.to_csv("test.csv")
 #A5a['variant']=A5a['variant'] + '_FR' + A5a['Freq'].astype(str)
 A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
 #A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
