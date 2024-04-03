@@ -903,6 +903,7 @@ all_whoG.sort_values('File',inplace=True)
 
 
 all_whoG.filter(regex=r'(File|_Conf_Grade)')
+all_whoG.to_csv("all_test.csv")
 drugs_conf=all_whoG.filter(regex=r'(_Conf_Grade)').columns
 # create array of drugs
 drugs=drugs_conf.str.split('_').str[0]
