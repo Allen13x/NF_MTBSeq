@@ -935,8 +935,10 @@ A5.fillna(0,inplace=True)
 
 #A5a=A5.drop('Freq',axis=1).drop_duplicates()
 A5a=A5.drop_duplicates()
+print(A5)
 #A5a['variant']=A5a['variant'] + '_FR' + A5a['Freq'].astype(str)
 A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
+#A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
 A5b=A5a.groupby(['File','RIF_Conf_Grade','INH_Conf_Grade', 'EMB_Conf_Grade', 'PZA_Conf_Grade', 'LEV_Conf_Grade',       'MXF_Conf_Grade', 'BDQ_Conf_Grade', 'LZD_Conf_Grade', 'CFZ_Conf_Grade',       'DLM_Conf_Grade', 'AMI_Conf_Grade', 'STM_Conf_Grade', 'ETH_Conf_Grade',       'KAN_Conf_Grade', 'CAP_Conf_Grade'])['variant'].apply(', '.join).reset_index()
 
 
