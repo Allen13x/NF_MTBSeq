@@ -161,7 +161,7 @@ DEL_ONT(mapped_bam,params.ref,params.bed,params.bedix)
 deletion=DEL_ONT.out}
 DEPTH(mapped_bam,params.tgene)
 var=VARIANTS_LOW.out.var_low
-old_var=Channel.fromPath('Called/*variants_cf1*001.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+old_var=Channel.fromPath('Called/*variants_cf1*001.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 var=var.concat(old_var).unique{it[0]}.map{id,file->file}.collect()
 MUT_CORRECTION(var)
 delly=deletion.map{id,file -> file}
