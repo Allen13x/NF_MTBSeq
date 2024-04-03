@@ -919,9 +919,9 @@ Alisubst1=[]
 for i in drugs_conf:
     t = i.split('_')[0]
     A[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File',i]]
-    Asubst[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF',i]]
-    Asubst1[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim') | (all_whoG[i]=='3) Uncertain significance')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF',i]]
-    Asubst5[t] = all_whoG[(all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Type','Freq','LOF',i]]
+    Asubst[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF','Genome position',i]]
+    Asubst1[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim') | (all_whoG[i]=='3) Uncertain significance')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF','Genome position',i]]
+    Asubst5[t] = all_whoG[(all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Type','Freq','LOF','Genome position',i]]
     Ali.append(A[t])
     Alisubst.append(Asubst[t])
     Alisubst5.append(Asubst5[t])
@@ -937,7 +937,7 @@ A5.fillna(0,inplace=True)
 A5a=A5.drop_duplicates()
 A5.to_csv("test.csv")
 #A5a['variant']=A5a['variant'] + '_FR' + A5a['Freq'].astype(str)
-A5a['variant']=np.where(A5a['variant'].str.contains("lof"),A5a['variant'] + '(' + A5a['Type'] + "-" + A5a['LOF'].astype(str) + ')',A5a['variant'])
+A5a['variant']=np.where(A5a['variant'].str.contains("lof"),A5a['variant'] + '('+ A5a['Genome position'].astype(str)+':'+ A5a['Type'] + "-" + A5a['LOF'].astype(str) + ')',A5a['variant'])
 A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
 #new=A5a[A5a['variant'].str.contains("lof")]
 #all['genome_index']
@@ -946,7 +946,7 @@ A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + 
 #.str.contains("hello")]
 #new.to_csv("test.csv")
 
-A5a=A5a.drop(['LOF', 'Type'], axis=1)
+A5a=A5a.drop(['LOF', 'Type','Genome position'], axis=1)
 A5b=A5a.groupby(['File','RIF_Conf_Grade','INH_Conf_Grade', 'EMB_Conf_Grade', 'PZA_Conf_Grade', 'LEV_Conf_Grade',       'MXF_Conf_Grade', 'BDQ_Conf_Grade', 'LZD_Conf_Grade', 'CFZ_Conf_Grade',       'DLM_Conf_Grade', 'AMI_Conf_Grade', 'STM_Conf_Grade', 'ETH_Conf_Grade',       'KAN_Conf_Grade', 'CAP_Conf_Grade'])['variant'].apply(', '.join).reset_index()
 
 
