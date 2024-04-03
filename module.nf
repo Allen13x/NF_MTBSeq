@@ -626,7 +626,7 @@ for (i in l){
                          col_names = c('Start','End','Length','Type','Ref','RefR','VarR','Freq','Precision','Gene')) %>%
                 {if(dim(.)[1]>0) mutate(.,Insindex=0,Ref='_',Allel=Type,Type=str_to_title(Type),Subst=" ",GeneName='-', Product=" ",Freq=Freq*100,Qual20=RefR+VarR) %>%
                 select(`#Pos`=Start,Insindex,Ref,Type,Allel,Subst,Gene,GeneName,Product,Freq,Qual20)})->a}
-
+        a%>%bind_rows(filter(unique(a%>%filter(Type != 'SNP') %>% arrange(Type, '#Pos') %>% add_count(across(everything()))) %>% ungroup() %>% mutate(Allel= case_when(n %% 3!=0 ~ 'LOF', TRUE ~as.character(Type))), Allel=='LOF')) ->a
   a %>%
 write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
 
@@ -655,7 +655,7 @@ lapply(files, function(x){
     relocate(File)
 })->l
 bind_rows(l)%>%
-write_delim('all_cf1N.tab',delim='\\t',col_names = F)
+write_delim('all_cf1N.tab',delim='\\t',col_names = F,na='0')
 """
 }
 
@@ -754,7 +754,7 @@ h %>% rownames_to_column('Name') %>% as_tibble()->head
 
 
 bind_rows(list(head,tail)) %>% 
-  write_delim(paste0('pharma_gene_format_',t,'.tab'),delim='\\t',na = '')
+  write_delim(paste0('pharma_gene_format_',t,'.tab'),delim='\\t',na = '0')
 
 p%>%
 write_delim('pharma_gene.tab',delim='\\t',col_names=F)
@@ -919,9 +919,9 @@ Alisubst1=[]
 for i in drugs_conf:
     t = i.split('_')[0]
     A[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File',i]]
-    Asubst[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq',i]]
-    Asubst1[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim') | (all_whoG[i]=='3) Uncertain significance')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq',i]]
-    Asubst5[t] = all_whoG[(all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq',i]]
+    Asubst[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF','Genome position',i]]
+    Asubst1[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim') | (all_whoG[i]=='3) Uncertain significance')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF','Genome position',i]]
+    Asubst5[t] = all_whoG[(all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Type','Freq','LOF','Genome position',i]]
     Ali.append(A[t])
     Alisubst.append(Asubst[t])
     Alisubst5.append(Asubst5[t])
@@ -933,10 +933,11 @@ A5=pd.concat(Alisubst5)
 A5.fillna(0,inplace=True)
 
 
-#A5a=A5.drop('Freq',axis=1).drop_duplicates()
 A5a=A5.drop_duplicates()
-#A5a['variant']=A5a['variant'] + '_FR' + A5a['Freq'].astype(str)
+A5a['variant']=np.where(A5a['variant'].str.contains("lof"),A5a['variant'] + '('+ A5a['Genome position'].astype(str)+':'+ A5a['Type'] + "-" + A5a['LOF'].astype(str) + ')',A5a['variant'])
 A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
+
+A5a=A5a.drop(['LOF', 'Type','Genome position'], axis=1)
 A5b=A5a.groupby(['File','RIF_Conf_Grade','INH_Conf_Grade', 'EMB_Conf_Grade', 'PZA_Conf_Grade', 'LEV_Conf_Grade',       'MXF_Conf_Grade', 'BDQ_Conf_Grade', 'LZD_Conf_Grade', 'CFZ_Conf_Grade',       'DLM_Conf_Grade', 'AMI_Conf_Grade', 'STM_Conf_Grade', 'ETH_Conf_Grade',       'KAN_Conf_Grade', 'CAP_Conf_Grade'])['variant'].apply(', '.join).reset_index()
 
 
