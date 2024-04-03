@@ -163,7 +163,7 @@ DEPTH(mapped_bam,params.tgene)
 var=VARIANTS_LOW.out.var_low
 old_var=Channel.fromPath('Called/*variants_cf1*001.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 var=var.concat(old_var).unique{it[0]}
-var.view()
+//var.view()
 MUT_CORRECTION(var)
 delly=deletion.map{id,file -> file}
 old_del=channel.fromPath('OUTPUT/DELETIONS.*')
