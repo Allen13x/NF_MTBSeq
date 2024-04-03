@@ -933,18 +933,9 @@ A5=pd.concat(Alisubst5)
 A5.fillna(0,inplace=True)
 
 
-#A5a=A5.drop('Freq',axis=1).drop_duplicates()
 A5a=A5.drop_duplicates()
-A5.to_csv("test.csv")
-#A5a['variant']=A5a['variant'] + '_FR' + A5a['Freq'].astype(str)
 A5a['variant']=np.where(A5a['variant'].str.contains("lof"),A5a['variant'] + '('+ A5a['Genome position'].astype(str)+':'+ A5a['Type'] + "-" + A5a['LOF'].astype(str) + ')',A5a['variant'])
 A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
-#new=A5a[A5a['variant'].str.contains("lof")]
-#all['genome_index']
-#A5a=A5a.drop(A5a[A5a['variant'].str.contains("lof")].index)
-#print(A5a.shape)
-#.str.contains("hello")]
-#new.to_csv("test.csv")
 
 A5a=A5a.drop(['LOF', 'Type','Genome position'], axis=1)
 A5b=A5a.groupby(['File','RIF_Conf_Grade','INH_Conf_Grade', 'EMB_Conf_Grade', 'PZA_Conf_Grade', 'LEV_Conf_Grade',       'MXF_Conf_Grade', 'BDQ_Conf_Grade', 'LZD_Conf_Grade', 'CFZ_Conf_Grade',       'DLM_Conf_Grade', 'AMI_Conf_Grade', 'STM_Conf_Grade', 'ETH_Conf_Grade',       'KAN_Conf_Grade', 'CAP_Conf_Grade'])['variant'].apply(', '.join).reset_index()
