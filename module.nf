@@ -430,6 +430,7 @@ done
 sort -u -r -k1 Mapping_Classification.tab | uniq >Mapping_Classification.tab.tmp
 mv Mapping_Classification.tab.tmp Mapping_Classification.tab
 
+chmod 666 Mapping_Classification.tab
 """
 }
 
