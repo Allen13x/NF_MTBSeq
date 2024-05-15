@@ -23,7 +23,7 @@ autoMounts = true
 	params.WHO="/$baseDir/REF/WHO_custom.csv"
 	params.extra=true
 	params.join=true
-	params.sj='sample_joint'
+	params.sj='/$baseDir/sample_joint'
 	params.proj='def'
 	params.ascii="$baseDir/REF/ascii_string"
 	params.h=false
@@ -192,7 +192,7 @@ call=call.concat(old_call).unique{it[0]}.map{id,file->file}.collect()
 list=LIST.out.list
 old_list=Channel.fromPath('Position_Tables/*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 list=list.concat(old_list).unique{it[0]}.map{id,file->file}.collect()
-JOIN(call,list,params.sj,params.minbqual,params.minphred20,params.proj,params.ref)
+JOIN(call,list,channel.fromPath(params.sj).collect(),params.minbqual,params.minphred20,params.proj,params.ref)
 
 }
 
