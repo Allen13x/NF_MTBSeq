@@ -495,6 +495,7 @@ awk '{print gensub("\\.dels","","g",FILENAME),\$0}' OFS='\\t' *.dels | tr ';' '\
 
 sort -k1,1 -k2,2n -u -o DELETIONS.tab DELETIONS.tab
 
+chmod 666 DELETIONS.tab
 
 """
 }
@@ -547,6 +548,7 @@ for i in gbcov_*;do awk '{if (NR == 1) {print "000000",\$0} else {print gensub("
 sort -u -o GB_cov.csv GB_cov.csv
 sort -k2 -r -t ';' -o GB_cov.csv GB_cov.csv
 
+chmod 666 GB_cov.csv
 """
 }
 
