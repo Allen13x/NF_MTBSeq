@@ -522,7 +522,7 @@ zcat ${replicateId}.regions.bed.gz | tail -n +2 | awk -v value="GB" '\$4 != valu
 
 cat <(cat ${replicateId}.t.bed | awk '{print \$1,\$2,\$3,\$4,\$5/(\$3-\$2)}' OFS='\\t' | sed 's/GB/GB_perc/g') <(cat ${replicateId}.r.bed) | cut -f4,5 | awk -F '\t' '{for (i=1; i<=NF; i++) {a[NR,i] = \$i}}; NF>p { p = NF }; END {for (j=1; j<=p; j++) {str=a[1,j]; for (i=2; i<=NR; i++){str=str";"a[i,j];};print str}}' > gbcov_${replicateId}
 
-#rm ${replicateId}*
+rm ${replicateId}*
 
 """
 
