@@ -633,7 +633,7 @@ for (i in l){
         Allel=ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'STOP',Allel))->b
   a %>%bind_rows(b)%>%
 write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
-
+Sys.chmod(paste(i,'corrected.tab',sep='_'), mode = "0777")
 }
 """
 }
@@ -660,6 +660,7 @@ lapply(files, function(x){
 })->l
 bind_rows(l)%>%
 write_delim('all_cf1N.tab',delim='\\t',col_names = F,na='0')
+Sys.chmod('all_cf1N.tab', mode = "0777")
 """
 }
 
@@ -759,10 +760,12 @@ h %>% rownames_to_column('Name') %>% as_tibble()->head
 
 bind_rows(list(head,tail)) %>% 
   write_delim(paste0('pharma_gene_format_',t,'.tab'),delim='\\t',na = '0')
+Sys.chmod(paste0('pharma_gene_format_',t,'.tab'), mode = "0777")
+
 
 p%>%
 write_delim('pharma_gene.tab',delim='\\t',col_names=F)
-
+Sys.chmod("pharma_gene.tab", mode = "0777")
 
 """
 }
@@ -784,6 +787,7 @@ script:
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
 import pandas as pd
 import numpy as np
 from functools import reduce
@@ -956,7 +960,7 @@ A5b.insert(1, "ID", A5b.File.str.split('_').str[0], True)
 A5b = A5b.sort_values(by=['ID'], ascending=True)#.drop('new', axis=1)
 
 A5b.to_csv('WHO_raw.csv',index=False, sep=';')
-
+os.chmod('WHO_raw.csv', 0o777)
 """
 }
 
@@ -1002,6 +1006,7 @@ read_delim('${WHO}',delim=';') %>%
                                     (!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na))~'RR')) %>% 
   select(ID,starts_with('Interpretation'),matches('\\\\)')) %>% 
   write_delim('res_WHO.csv',delim=';',na='')
+  Sys.chmod("res_WHO.csv", mode = "0777")
 
 
 """
