@@ -138,21 +138,23 @@ REFINE_ONT(MAPPING_ONT.out.bam,params.ref,params.ascii)
 refined=REFINE_ONT.out
 PILE_ONT(REFINE_ONT.out.gatk,params.ref,params.minbqual)
 piled=PILE_ONT.out}
+old_mapped=channel.fromPath('Bam/*bam*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
+new_mapped=mapped.bam
+mapped_bam=new_mapped.concat(old_mapped).unique{it[0]}
 LIST(piled.mpile,params.minbqual,params.ref)
+old_list=channel.fromPath('Position_tables/*table.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
+new_list=LIST.out.list
+ptables=new_list.concat(old_list).unique{it[0]}
 VARIANTS_LOW(LIST.out.list,params.ref)
 VARIANTS(LIST.out.list,params.mincovf,params.mincovr,params.minphred20,params.ref)
-STATS(mapped.bam.join(LIST.out.list,by: 0),params.mincovf,params.mincovr,params.minphred20)
-STRAIN(LIST.out.list)
+STATS(mapped.bam.join(ptables,by: 0),params.mincovf,params.mincovr,params.minphred20)
+STRAIN(ptables)
 map_strain=STATS.out.stats.join(STRAIN.out.strain,by:0).map{id,file1,file2 -> tuple(file1,file2)}.collect()
-old_map=channel.fromPath('OUTPUT/Mapping_Classification.tab')
-map_strain=map_strain.concat(old_map).collect()
+//old_map=channel.fromPath('OUTPUT/Mapping_Classification.tab')
+map_strain=map_strain.collect()
 MAP_STRAIN(map_strain)
 
 if (params.extra){
-old_mapped=channel.fromPath('Bam/*bam*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
-//old_mapped.view()
-new_mapped=mapped.bam
-mapped_bam=new_mapped.concat(old_mapped).unique{it[0]}
 if (params.SEQ == "ILL"){	
 DEL(mapped_bam,params.ref,params.bed,params.bedix)
 deletion=DEL.out}
