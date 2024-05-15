@@ -166,11 +166,11 @@ var=var.concat(old_var).unique{it[0]}
 //var.view()
 MUT_CORRECTION(var)
 delly=deletion.map{id,file -> file}
-#old_del=channel.fromPath('OUTPUT/DELETIONS.*')
+//old_del=channel.fromPath('OUTPUT/DELETIONS.*')
 delly=delly.collect()
 OUT_DEL(delly)
 depth=DEPTH.out.map{id,file->file}
-#old_cov=channel.fromPath('OUTPUT/GB_cov.*')
+//old_cov=channel.fromPath('OUTPUT/GB_cov.*')
 depth=depth.collect()
 OUT_DEPTH(depth)
 mut=MUT_CORRECTION.out
