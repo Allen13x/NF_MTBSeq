@@ -362,7 +362,7 @@ publishDir "Groups", mode: "copy", pattern: "Groups/*"
 input:
         path(cc)
         path(ll)
-        val(sample_joint)
+        path(sample_joint)
 	val(minbqual)
 	val(minphred20)
         val(proj)
@@ -380,8 +380,18 @@ mv *variants_cf4* Called/
 mkdir Joint
 mkdir Amend
 mkdir Groups
+
+if [ -f ${sample_joint} ]; then
+
+ls -1 Called/*_variants_cf4* | cut -f2 -d'/' | cut -f1,2 -d '_' | tr '_' '\\t' | sort -r | sort -u -k1,1 | grep -F ${sample_joint} > sample_joint
+
+else
+
 ls -1 Called/*_variants_cf4* | cut -f2 -d'/' | cut -f1,2 -d '_' | tr '_' '\\t' | sort -r | sort -u -k1,1 > sample_joint
-USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --ref ${ref} --samples ${sample_joint} --distance 5 --project ${proj} --minbqual ${minbqual} --minphred20 ${minphred20} || echo "processed \$?"
+
+fi
+
+USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --ref ${ref} --samples sample_joint --distance 5 --project ${proj} --minbqual ${minbqual} --minphred20 ${minphred20} || echo "processed \$?"
 """
 
 }
