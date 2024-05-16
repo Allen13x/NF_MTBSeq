@@ -362,7 +362,7 @@ publishDir "Groups", mode: "copy", pattern: "Groups/*"
 input:
         path(cc)
         path(ll)
-        path(sample_joint)
+        path(sample_joint) from params.sj
 	val(minbqual)
 	val(minphred20)
         val(proj)
