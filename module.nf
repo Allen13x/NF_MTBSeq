@@ -372,7 +372,7 @@ output:
         path("Amend/*"), emit: amend
         path("Groups/*"), emit: groups
 script:
-def joint_select = opt.name != 'placehold' ? "| grep -F ${sample_joint}" : ''
+def joint_select = sample_joint.name != 'placehold' ? "| grep -F ${sample_joint}" : ''
 """
 mkdir Position_Tables
 mv *position_table* Position_Tables
