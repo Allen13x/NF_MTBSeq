@@ -372,6 +372,7 @@ output:
         path("Amend/*"), emit: amend
         path("Groups/*"), emit: groups
 script:
+def joint_select = opt.name != 'placehold' ? "| grep -F ${sample_joint}" : ''
 """
 mkdir Position_Tables
 mv *position_table* Position_Tables
@@ -381,15 +382,9 @@ mkdir Joint
 mkdir Amend
 mkdir Groups
 
-if [ -f ${sample_joint} ]; then
+ls -1 Called/*_variants_cf4* | cut -f2 -d'/' | cut -f1,2 -d '_' | tr '_' '\\t' | sort -r | sort -u -k1,1 $joint_select  > sample_joint
 
-ls -1 Called/*_variants_cf4* | cut -f2 -d'/' | cut -f1,2 -d '_' | tr '_' '\\t' | sort -r | sort -u -k1,1 | grep -F ${sample_joint} > sample_joint
 
-else
-
-ls -1 Called/*_variants_cf4* | cut -f2 -d'/' | cut -f1,2 -d '_' | tr '_' '\\t' | sort -r | sort -u -k1,1 > sample_joint
-
-fi
 
 USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --ref ${ref} --samples sample_joint --distance 5 --project ${proj} --minbqual ${minbqual} --minphred20 ${minphred20} || echo "processed \$?"
 """
