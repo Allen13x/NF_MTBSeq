@@ -192,7 +192,7 @@ call=call.concat(old_call).unique{it[0]}.map{id,file->file}.collect()
 list=LIST.out.list
 old_list=Channel.fromPath('Position_Tables/*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 list=list.concat(old_list).unique{it[0]}.map{id,file->file}.collect()
-JOIN(call,list,params.minbqual,params.minphred20,params.proj,params.ref)
+JOIN(call,list,channel.fromPath(params.sj,checkIfExists:true).collect(),params.minbqual,params.minphred20,params.proj,params.ref)
 
 }
 
