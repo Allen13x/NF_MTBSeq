@@ -643,7 +643,7 @@ for (i in l){
 
    a%>%filter(str_detect(Subst,'^Met1[A-z]+|^Val1[A-z]+')) %>% 
     filter(!str_detect(Subst,'^(Val1|Met1)(Val|Met)')) %>% 
-    mutate(Ref='START',Allel='StartLoss')->c
+    mutate(Ref='START',Allel='STARTLOSS')->c
   a %>%bind_rows(b)%>%
   bind_rows(c)%>%
 write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
@@ -983,10 +983,12 @@ cpus 1
 container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
 memory "20G"
 publishDir "OUTPUT", mode: 'copy', pattern: 'res_WHO.csv'
+publishDir "OUTPUT", mode: 'copy', pattern: 'res_who_long.csv'
 input:
         path(WHO)
 output:
         path('res_WHO.csv')
+        path('res_who_long.csv')
 script:
 """
 #!/usr/bin/env Rscript
@@ -1022,7 +1024,12 @@ read_delim('${WHO}',delim=';') %>%
   write_delim('res_WHO.csv',delim=';',na='')
   Sys.chmod("res_WHO.csv", mode = "0777")
 
-
+read_delim('res_WHO.csv') %>% 
+  gather(WHO_grade,Mut,-ID,-Interpretation_126) %>% 
+  separate_rows(Mut,sep=', ') %>% 
+  filter(!is.na(Mut)) %>% 
+  write_excel_csv('res_who_long.csv',delim=';')
+  Sys.chmod("res_who_long.csv", mode = "0664")
 """
 
 }
