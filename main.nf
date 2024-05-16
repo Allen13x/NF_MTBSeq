@@ -112,6 +112,7 @@ Target genes: $params.tgene
 Drug genes: $params.pgene
 Mutation Threshold: $params.tdrug
 WHO Catalogue: $params.WHO
+SampleList: $params.sj
 """
 
 if(params.SEQ == "ILL"){
