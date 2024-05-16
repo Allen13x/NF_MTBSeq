@@ -640,7 +640,12 @@ for (i in l){
   a%>%filter(str_detect(Subst,'^[^_]+[1-9]+_'))%>%
   mutate(Ref=ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'_',Ref),
         Allel=ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'STOP',Allel))->b
+
+   a%>%filter(str_detect(Subst,'^Met1[A-z]+|^Val1[A-z]+')) %>% 
+    filter(!str_detect(Subst,'^(Val1|Met1)(Val|Met)')) %>% 
+    mutate(Ref='START',Allel='StartLoss')->c
   a %>%bind_rows(b)%>%
+  bind_rows(c)%>%
 write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
 Sys.chmod(paste(i,'corrected.tab',sep='_'), mode = "0777")
 }
