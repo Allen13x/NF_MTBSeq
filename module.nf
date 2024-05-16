@@ -362,7 +362,7 @@ publishDir "Groups", mode: "copy", pattern: "Groups/*"
 input:
         path(cc)
         path(ll)
-        val(sample_joint)
+        path(sample_joint)
 	val(minbqual)
 	val(minphred20)
         val(proj)
@@ -372,6 +372,7 @@ output:
         path("Amend/*"), emit: amend
         path("Groups/*"), emit: groups
 script:
+def joint_select = sample_joint.name != 'placehold' ? "| awk 'NR==FNR{a[\$1];next}(\$1 in a)' ${sample_joint} -" : ''
 """
 mkdir Position_Tables
 mv *position_table* Position_Tables
@@ -380,8 +381,12 @@ mv *variants_cf4* Called/
 mkdir Joint
 mkdir Amend
 mkdir Groups
-ls -1 Called/*_variants_cf4* | cut -f2 -d'/' | cut -f1,2 -d '_' | tr '_' '\\t' | sort -r | sort -u -k1,1 > sample_joint
-USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --ref ${ref} --samples ${sample_joint} --distance 5 --project ${proj} --minbqual ${minbqual} --minphred20 ${minphred20} || echo "processed \$?"
+
+ls -1 Called/*_variants_cf4* | cut -f2 -d'/' | cut -f1,2 -d '_' | tr '_' '\\t' | sort -r | sort -u -k1,1 $joint_select  > sample_joint
+
+
+
+USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --ref ${ref} --samples sample_joint --distance 5 --project ${proj} --minbqual ${minbqual} --minphred20 ${minphred20} || echo "processed \$?"
 """
 
 }

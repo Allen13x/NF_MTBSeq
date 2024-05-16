@@ -23,7 +23,7 @@ autoMounts = true
 	params.WHO="/$baseDir/REF/WHO_custom.csv"
 	params.extra=true
 	params.join=true
-	params.sj='sample_joint'
+	params.sj="$baseDir/REF/placehold"
 	params.proj='def'
 	params.ascii="$baseDir/REF/ascii_string"
 	params.h=false
@@ -112,6 +112,7 @@ Target genes: $params.tgene
 Drug genes: $params.pgene
 Mutation Threshold: $params.tdrug
 WHO Catalogue: $params.WHO
+SampleList: $params.sj
 """
 
 if(params.SEQ == "ILL"){
@@ -192,7 +193,7 @@ call=call.concat(old_call).unique{it[0]}.map{id,file->file}.collect()
 list=LIST.out.list
 old_list=Channel.fromPath('Position_Tables/*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 list=list.concat(old_list).unique{it[0]}.map{id,file->file}.collect()
-JOIN(call,list,params.sj,params.minbqual,params.minphred20,params.proj,params.ref)
+JOIN(call,list,channel.fromPath(params.sj,checkIfExists:true).collect(),params.minbqual,params.minphred20,params.proj,params.ref)
 
 }
 
