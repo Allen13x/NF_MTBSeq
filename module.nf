@@ -463,7 +463,7 @@ bcftools view -i '((SVTYPE="DEL" || SVTYPE="INS") && FILTER="PASS" && (END - POS
 bedtools intersect -a variants.bed -b h37rv_ups_ordered.bed.gz -wa -wb -loj > overlaps.txt
 
 # Adjust start and end positions to match overlapping part of gene and include variant length
-awk 'BEGIN { OFS=";" } { if (\$12 == -1) { print \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10 } else { start = (\$2 > \$12) ? \$2 : \$12; end = (\$3 < \$13) ? \$3 : \$13; print start, end, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$14 } }' overlaps.txt > ${replicateID}.dels
+awk 'BEGIN { OFS=";" } { if (\$12 == -1) { print \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10 } else { start = (\$2 > \$12) ? \$2 : \$12; end = (\$3 < \$13) ? \$3 : \$13; print start, end, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$14 } }' overlaps.txt > ${replicateId}.dels
 """
 }
 
