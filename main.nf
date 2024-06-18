@@ -143,7 +143,7 @@ old_mapped=channel.fromPath('Bam/*bam*').map{file -> tuple ((file.getSimpleName(
 new_mapped=mapped.bam
 mapped_bam=new_mapped.concat(old_mapped).unique{it[0]}
 LIST(piled.mpile,params.minbqual,params.ref)
-old_list=channel.fromPath('Position_tables/*table.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
+old_list=channel.fromPath('Position_Tables/*table.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 new_list=LIST.out.list
 ptables=new_list.concat(old_list).unique{it[0]}
 old_list.view()
