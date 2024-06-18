@@ -159,25 +159,10 @@ depth=DEPTH.out.map{id,file->file}
 //old_cov=channel.fromPath('OUTPUT/GB_cov.*')
 depth=depth.collect()
 OUT_DEPTH(depth)
-
-
-if (params.extra){
-if (params.SEQ == "ILL"){	
-DEL(mapped_bam,params.ref,params.bed,params.bedix)
-deletion=DEL.out}
-else{
-DEL_ONT(mapped_bam,params.ref,params.bed,params.bedix)
-deletion=DEL_ONT.out}
-
 var=VARIANTS_LOW.out.var_low
 old_var=Channel.fromPath('Called/*variants_cf1*001.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 var=var.concat(old_var).unique{it[0]}
-//var.view()
 MUT_CORRECTION(var)
-delly=deletion.map{id,file -> file}
-//old_del=channel.fromPath('OUTPUT/DELETIONS.*')
-delly=delly.collect()
-OUT_DEL(delly)
 mut=MUT_CORRECTION.out
 old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
@@ -186,6 +171,19 @@ MUT_GATHER(mut)
 PHARMA(mut,"10",params.pgene)
 WHO(MUT_GATHER.out,params.dhead,params.WHO)
 OUT_WHO(WHO.out)
+
+if (params.extra){
+if (params.SEQ == "ILL"){	
+DEL(mapped_bam,params.ref,params.bed,params.bedix)
+deletion=DEL.out}
+else{
+DEL_ONT(mapped_bam,params.ref,params.bed,params.bedix)
+deletion=DEL_ONT.out}
+//var.view()
+delly=deletion.map{id,file -> file}
+//old_del=channel.fromPath('OUTPUT/DELETIONS.*')
+delly=delly.collect()
+OUT_DEL(delly)
 }
 
 if (params.join){
@@ -196,7 +194,6 @@ list=LIST.out.list
 old_list=Channel.fromPath('Position_Tables/*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 list=list.concat(old_list).unique{it[0]}.map{id,file->file}.collect()
 JOIN(call,list,channel.fromPath(params.sj,checkIfExists:true).collect(),params.minbqual,params.minphred20,params.proj,params.ref)
-
 }
 
 
