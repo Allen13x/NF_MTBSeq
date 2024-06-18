@@ -5,7 +5,7 @@
 process COLLECT_READS {
 cpus 1
 tag "$replicateId"
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 input:
 	tuple val(replicateId), path(reads) 
 	val SEQ
@@ -48,7 +48,7 @@ process MAPPING {
 //errorStrategy 'ignore'
 cpus 8
 memory "20GB"
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "Bam", mode:'copy', pattern: "*bam*"
 input:
@@ -77,7 +77,7 @@ process MAPPING_ONT {
 //errorStrategy 'ignore'
 cpus 8
 memory "20GB"
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "Bam", mode:'copy', pattern: "*bam*"
 input:
@@ -120,7 +120,7 @@ ln -s Bam/*bam* .
 process REFINE {
 cpus 8
 memory "20GB"
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "GATK_Bam", mode:'copy', pattern: "*gatk*"
 input:
@@ -145,7 +145,7 @@ ln -s GATK_Bam/* .
 process REFINE_ONT {
 cpus 8
 memory "20GB"
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "GATK_Bam", mode:'copy', pattern: "*gatk*"
 input:
@@ -191,7 +191,7 @@ ln -s GATK_Bam/* .
 process PILE {
 memory "20GB"
 cpus 8
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "Mpileup", mode:'copy', pattern: "*mpileup*"
 input:
@@ -216,7 +216,7 @@ ln -s Mpileup/* .
 process PILE_ONT {
 memory "20GB"
 cpus 8
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "Mpileup", mode:'copy', pattern: "*mpileup*"
 input:
@@ -245,7 +245,7 @@ ln -s Mpileup/* .
 process LIST {
 memory "20GB"
 cpus 8
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "Position_Tables", mode:'copy', pattern: "*position_table*"
 input:
@@ -272,7 +272,7 @@ ln -s Position_Tables/* .
 process VARIANTS_LOW {
 memory "20GB"
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "Called", mode:'copy', pattern: "*tab"
 input:
@@ -299,7 +299,7 @@ ln -s Called/* .
 process VARIANTS {
 memory "20GB"
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "Called", mode:'copy', pattern: "*tab"
 input:
@@ -326,7 +326,7 @@ ln -s Called/* .
 process STATS {
 memory "20GB"
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "Statistics", mode:'copy', pattern: "*tab"
 input:
@@ -355,7 +355,7 @@ ln -s Statistics/* .
 process JOIN {
 memory "60GB"
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 publishDir "Joint", mode: "copy", pattern: "Joint/*"
 publishDir "Amend", mode: "copy", pattern: "Amend/*"
 publishDir "Groups", mode: "copy", pattern: "Groups/*"
@@ -394,7 +394,7 @@ USER=a perl /opt/conda/bin/MTBseq --step TBjoin --continue --ref ${ref} --sample
 process STRAIN {
 memory "20GB"
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 tag "$replicateId"
 publishDir "Classification", mode:'copy', pattern: "*tab"
 input:
@@ -419,7 +419,7 @@ ln -s Classification/* .
 process MAP_STRAIN{
 memory '5GB'
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 publishDir "OUTPUT", mode: 'copy', pattern: "Mapping_Classification.tab"
 input:
 	path(stats)
@@ -444,7 +444,7 @@ process DEL {
 tag "$replicateId"
 cpus 1
 errorStrategy 'ignore'
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 memory '20GB'
 input:
 	tuple val(replicateId), path(bam)
@@ -471,7 +471,7 @@ awk 'BEGIN { OFS=";" } { if (\$12 == -1) { print \$2, \$3, \$4, \$5, \$6, \$7, \
 process DEL_ONT {
 tag "$replicateId"
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 memory '20GB'
 input:
 	tuple val(replicateId), path(bam)
@@ -491,7 +491,7 @@ bcftools annotate -a ${bed} -c CHROM,FROM,TO,GENE -h <(echo '##INFO=<ID=GENE,Num
 
 process OUT_DEL {
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 memory '20GB'
 publishDir 'OUTPUT', mode: "copy", pattern: "DELETIONS.tab"
 input:
@@ -515,7 +515,7 @@ chmod 666 DELETIONS.tab
 
 process DEPTH {
 cpus 8
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 memory "40GB"
 tag "$replicateId"
 input:
@@ -545,7 +545,7 @@ rm ${replicateId}*
 
 process OUT_DEPTH {
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 memory '20GB'
 publishDir 'OUTPUT', mode: "copy", pattern: "GB_cov.csv"
 input:
@@ -566,7 +566,7 @@ chmod 666 GB_cov.csv
 
 process MUT_CORRECTION {
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 memory "20GB"
 tag "$replicateId"
 publishDir "Called", mode:'copy', pattern: "*corrected.tab"
@@ -666,7 +666,7 @@ Sys.chmod(paste(i,'corrected.tab',sep='_'), mode = "0777")
 
 process MUT_GATHER{
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 memory "10GB"
 input:
         path(tabs)
@@ -693,7 +693,7 @@ Sys.chmod('all_cf1N.tab', mode = "0777")
 
 process PHARMA {
 cpus 1
-container "library://allen13x/mtbseq/nf_mtbseq:1.0.0"
+container "library://allen13x/mtbseq/nf_mtbseq:1.0.1"
 memory "10GB"
 publishDir "Called", mode: 'copy', pattern: 'pharma_gene*'
 publishDir "OUTPUT", mode: 'copy', pattern: '*format*'
@@ -799,7 +799,7 @@ Sys.chmod("pharma_gene.tab", mode = "0777")
 
 process  WHO {
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 memory "10GB"
 input:
         path(tab)
@@ -991,7 +991,7 @@ os.chmod('WHO_raw.csv', 0o777)
 
 process OUT_WHO {
 cpus 1
-container 'library://allen13x/mtbseq/nf_mtbseq:1.0.0'
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
 memory "20G"
 publishDir "OUTPUT", mode: 'copy', pattern: 'res_WHO.csv'
 publishDir "OUTPUT", mode: 'copy', pattern: 'res_who_long.csv'
