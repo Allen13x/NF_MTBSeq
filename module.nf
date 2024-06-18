@@ -643,8 +643,8 @@ for (i in l){
         a%>%bind_rows(filter(unique(a%>%filter(Type != 'SNP') %>% arrange(Type, '#Pos') %>% add_count(across(everything()))) %>% ungroup() %>% mutate(Allel= case_when(n %% 3!=0 ~ 'LOF', TRUE ~as.character(Type))), Allel=='LOF'))->a
   
   a%>%filter(str_detect(Subst,'^[^_]+[1-9]+_'))%>%
-  mutate(Ref=ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'_',Ref),
-        Allel=ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'STOP',Allel))->b
+  mutate(Ref=as.character(ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'_',Ref)),
+        Allel=as.character(ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'STOP',Allel)))->b
 
    a%>%filter(str_detect(Subst,'^Met1[A-z]+|^Val1[A-z]+')) %>% 
     filter(!str_detect(Subst,'^(Val1|Met1)(Val|Met)')) %>% 
