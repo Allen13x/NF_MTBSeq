@@ -457,7 +457,13 @@ script:
 """
 delly call -o ${replicateId}.bcf -g /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta ${replicateId}*.bam
 
-bcftools annotate -a ${bed} -c CHROM,FROM,TO,GENE -h <(echo '##INFO=<ID=GENE,Number=1,Type=String,Description="Gene name">') ${replicateId}.bcf | grep -P "=DEL|=INS" | grep "PASS" | grep -i -v "lowQual" | cut -f2,4,5,8,10 |  awk '{if (\$4 ~ "SVLEN") {print \$0,gensub(".*END=([0-9]*);.*","\\\\1","g",\$4),gensub(".*SVLEN=([0-9]*);.*","\\\\1","g",\$4)} else {print \$0, gensub(".*END=([0-9]*);.*","\\\\1","g",\$4),0}}' | awk '{ if (\$4 ~ "GENE") {print \$1,\$6,gensub(".*SVTYPE=([A-Z]*);.*","\\\\1","g",\$4),\$2,gensub(".*:([^:]*):([^:]*\$)","\\\\1;\\\\2","g",gensub(":0:0\$","","g",\$5)),\$7,gensub("(^[PI]).*","\\\\1","g",\$4),gensub(".*GENE=","","g",\$4)} else {print \$1,\$6,gensub(".*SVTYPE=([A-Z]*);.*","\\\\1","g",\$4),\$2,gensub(".*:([^:]*):([^:]*\$)","\\\\1;\\\\2","g",gensub(":0:0\$","","g",\$5)),\$7,gensub("(^[PI]).*","\\\\1","g",\$4)}}' OFS=';' |  awk -F ';' '{if (\$7+\$2-\$1 < 100000) {print \$1,\$2, \$7+\$2-\$1,\$3,\$4,\$5,\$6,\$6/(\$6+\$5),\$8,\$9}}' OFS=';' > ${replicateId}.dels
+bcftools view -i '((SVTYPE="DEL" || SVTYPE="INS") && FILTER="PASS" && (END - POS + 1) <= 100000) || (SVTYPE="INS" && INFO/INSLEN <= 100000)' IT1156.bcf | bcftools query -f '%CHROM\\t%POS\\t%END\\t%SVTYPE\\t%REF\\t[%DR]\\t[%DV]\\t[%RR]\\t[%RV]\\t%PRECISE\\t%INFO/INSLEN\\n' | awk 'BEGIN { OFS="\\t" } { len = (\$4 == "DEL") ? (\$3 - \$2 + 1) : \$11; print \$1, \$2, \$3, \$4, \$5, \$6 + \$8, \$7 + \$9, \$10, (\$7+\$9) / (\$6 + \$7 +\$8 +\$9), len }' > variants.bed
+
+# Find overlaps with genes
+bedtools intersect -a variants.bed -b h37rv_ups_ordered.bed.gz -wa -wb -loj > overlaps.txt
+
+# Adjust start and end positions to match overlapping part of gene and include variant length
+awk 'BEGIN { OFS=";" } { if (\$12 == -1) { print $\2, $\3, $\4, $\5, \$6, \$7, \$8, \$9, \$10 } else { start = (\$2 > \$12) ? \$2 : \$12; end = (\$3 < \$13) ? \$3 : \$13; print start, end, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$14 } }' overlaps.txt > ${replicateID}.dels
 """
 }
 
