@@ -146,6 +146,7 @@ LIST(piled.mpile,params.minbqual,params.ref)
 old_list=channel.fromPath('Position_tables/*table.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 new_list=LIST.out.list
 ptables=new_list.concat(old_list).unique{it[0]}
+ptables.view()
 VARIANTS_LOW(LIST.out.list,params.ref)
 VARIANTS(LIST.out.list,params.mincovf,params.mincovr,params.minphred20,params.ref)
 STATS(mapped_bam.join(ptables,by: 0),params.mincovf,params.mincovr,params.minphred20)
