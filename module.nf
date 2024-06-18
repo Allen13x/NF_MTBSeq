@@ -673,7 +673,7 @@ library(tidyverse)
 files <- list.files(path = ".", pattern = "corrected.tab")
 lapply(files, function(x){
     read_delim(x,delim='\\t',
-    col_types='nncccnnnnncccccncn') %>%
+    col_types='nncccnnnnncccccccn') %>%
     mutate(File=str_remove_all(x,'_.*'))%>%
     relocate(File)
 })->l
@@ -712,7 +712,7 @@ files <- list.files(path = ".", pattern = "corrected.tab")
 
 lapply(files, function(x){
     read_delim(x,delim='\\t',
-    col_types='nncccnnnnnccccc') %>%
+    col_types='nncccnnnnncccccccn') %>%
     filter(Freq>=t) %>%
     mutate(ID=str_remove_all(x,'_.*'))
 })->l
