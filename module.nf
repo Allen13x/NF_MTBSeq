@@ -457,10 +457,10 @@ script:
 """
 delly call -o ${replicateId}.bcf -g /opt/conda/share/mtbseq-1.0.4-2/var/ref/${ref}.fasta ${replicateId}*.bam
 
-bcftools view -i '((SVTYPE="DEL" || SVTYPE="INS") && FILTER="PASS" && (END - POS + 1) <= 100000) || (SVTYPE="INS" && INFO/INSLEN <= 100000)' IT1156.bcf | bcftools query -f '%CHROM\\t%POS\\t%END\\t%SVTYPE\\t%REF\\t[%DR]\\t[%DV]\\t[%RR]\\t[%RV]\\t%PRECISE\\t%INFO/INSLEN\\n' | awk 'BEGIN { OFS="\\t" } { len = (\$4 == "DEL") ? (\$3 - \$2 + 1) : \$11; print \$1, \$2, \$3, \$4, \$5, \$6 + \$8, \$7 + \$9, \$10, (\$7+\$9) / (\$6 + \$7 +\$8 +\$9), len }' > variants.bed
+bcftools view -i '((SVTYPE="DEL" || SVTYPE="INS") && FILTER="PASS" && (END - POS + 1) <= 100000) || (SVTYPE="INS" && INFO/INSLEN <= 100000)' ${replicateId}.bcf | bcftools query -f '%CHROM\\t%POS\\t%END\\t%SVTYPE\\t%REF\\t[%DR]\\t[%DV]\\t[%RR]\\t[%RV]\\t%PRECISE\\t%INFO/INSLEN\\n' | awk 'BEGIN { OFS="\\t" } { len = (\$4 == "DEL") ? (\$3 - \$2 + 1) : \$11; print \$1, \$2, \$3, \$4, \$5, \$6 + \$8, \$7 + \$9, \$10, (\$7+\$9) / (\$6 + \$7 +\$8 +\$9), len }' > variants.bed
 
 # Find overlaps with genes
-bedtools intersect -a variants.bed -b h37rv_ups_ordered.bed.gz -wa -wb -loj > overlaps.txt
+bedtools intersect -a variants.bed -b ${bed} -wa -wb -loj > overlaps.txt
 
 # Adjust start and end positions to match overlapping part of gene and include variant length
 awk 'BEGIN { OFS=";" } { if (\$12 == -1) { print \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10 } else { start = (\$2 > \$12) ? \$2 : \$12; end = (\$3 < \$13) ? \$3 : \$13; print start, end, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$14 } }' overlaps.txt > ${replicateId}.dels
