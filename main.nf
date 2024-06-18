@@ -148,12 +148,18 @@ new_list=LIST.out.list
 ptables=new_list.concat(old_list).unique{it[0]}
 VARIANTS_LOW(LIST.out.list,params.ref)
 VARIANTS(LIST.out.list,params.mincovf,params.mincovr,params.minphred20,params.ref)
-STATS(mapped.bam.join(ptables,by: 0),params.mincovf,params.mincovr,params.minphred20)
+STATS(mapped_bam.join(ptables,by: 0),params.mincovf,params.mincovr,params.minphred20)
 STRAIN(ptables)
 map_strain=STATS.out.stats.join(STRAIN.out.strain,by:0).map{id,file1,file2 -> tuple(file1,file2)}.collect()
 //old_map=channel.fromPath('OUTPUT/Mapping_Classification.tab')
 map_strain=map_strain.collect()
 MAP_STRAIN(map_strain)
+DEPTH(mapped_bam,params.tgene)
+depth=DEPTH.out.map{id,file->file}
+//old_cov=channel.fromPath('OUTPUT/GB_cov.*')
+depth=depth.collect()
+OUT_DEPTH(depth)
+
 
 if (params.extra){
 if (params.SEQ == "ILL"){	
@@ -162,7 +168,7 @@ deletion=DEL.out}
 else{
 DEL_ONT(mapped_bam,params.ref,params.bed,params.bedix)
 deletion=DEL_ONT.out}
-DEPTH(mapped_bam,params.tgene)
+
 var=VARIANTS_LOW.out.var_low
 old_var=Channel.fromPath('Called/*variants_cf1*001.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 var=var.concat(old_var).unique{it[0]}
@@ -172,10 +178,6 @@ delly=deletion.map{id,file -> file}
 //old_del=channel.fromPath('OUTPUT/DELETIONS.*')
 delly=delly.collect()
 OUT_DEL(delly)
-depth=DEPTH.out.map{id,file->file}
-//old_cov=channel.fromPath('OUTPUT/GB_cov.*')
-depth=depth.collect()
-OUT_DEPTH(depth)
 mut=MUT_CORRECTION.out
 old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
