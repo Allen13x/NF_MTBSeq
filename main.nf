@@ -162,15 +162,7 @@ OUT_DEPTH(depth)
 var=VARIANTS_LOW.out.var_low
 old_var=Channel.fromPath('Called/*variants_cf1*001.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 var=var.concat(old_var).unique{it[0]}
-MUT_CORRECTION(var)
-mut=MUT_CORRECTION.out
-old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
-mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
-//mut.view()
-MUT_GATHER(mut)
-PHARMA(mut,"10",params.pgene)
-WHO(MUT_GATHER.out,params.dhead,params.WHO)
-OUT_WHO(WHO.out)
+
 
 if (params.extra){
 if (params.SEQ == "ILL"){	
@@ -184,6 +176,31 @@ delly=deletion.map{id,file -> file}
 //old_del=channel.fromPath('OUTPUT/DELETIONS.*')
 delly=delly.collect()
 OUT_DEL(delly)
+var_del=var.join(delly,by:0)
+var_del.view()
+}
+else{
+MUT_CORRECTION(var)
+mut=MUT_CORRECTION.out
+old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
+//mut.view()
+MUT_GATHER(mut)
+PHARMA(mut,"10",params.pgene)
+WHO(MUT_GATHER.out,params.dhead,params.WHO)
+OUT_WHO(WHO.out)
+}
+else{
+MUT_CORRECTION(var)
+mut=MUT_CORRECTION.out
+old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
+//mut.view()
+MUT_GATHER(mut)
+PHARMA(mut,"10",params.pgene)
+WHO(MUT_GATHER.out,params.dhead,params.WHO)
+OUT_WHO(WHO.out)
+
 }
 
 if (params.join){
