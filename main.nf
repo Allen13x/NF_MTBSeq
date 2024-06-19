@@ -179,6 +179,14 @@ OUT_DEL(delly)
 var_del=var.join(deletion,by:0)
 //var_del.view()
 MUT_CORRECTION(var_del)
+mut=MUT_CORRECTION.out
+old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
+//mut.view()
+MUT_GATHER(mut)
+PHARMA(mut,"10",params.pgene)
+WHO(MUT_GATHER.out,params.dhead,params.WHO)
+OUT_WHO(WHO.out)
 
 }
 else{
