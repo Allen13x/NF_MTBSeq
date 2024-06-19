@@ -190,18 +190,6 @@ PHARMA(mut,"10",params.pgene)
 WHO(MUT_GATHER.out,params.dhead,params.WHO)
 OUT_WHO(WHO.out)
 }
-else{
-MUT_CORRECTION(var)
-mut=MUT_CORRECTION.out
-old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
-mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
-//mut.view()
-MUT_GATHER(mut)
-PHARMA(mut,"10",params.pgene)
-WHO(MUT_GATHER.out,params.dhead,params.WHO)
-OUT_WHO(WHO.out)
-
-}
 
 if (params.join){
 call=VARIANTS.out.var
