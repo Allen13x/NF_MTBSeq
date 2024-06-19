@@ -176,7 +176,7 @@ delly=deletion.map{id,file -> file}
 //old_del=channel.fromPath('OUTPUT/DELETIONS.*')
 delly=delly.collect()
 OUT_DEL(delly)
-var_del=var.join(delly,by:0)
+var_del=var.join(deletion,by:0)
 var_del.view()
 }
 else{
