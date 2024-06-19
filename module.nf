@@ -643,7 +643,7 @@ for (i in l){
 
   if (file.exists(paste(s,'.dels',sep=''))) {
     a %>% bind_rows(read_delim(paste(s,'.dels',sep=''),show_col_types = FALSE,delim='\\t',
-                         col_names = c('Start','End','Length','Type','Ref','RefR','VarR','Freq','Precision','Gene')) %>%
+                         col_names = c('Start','End',Type,'Ref','RefR','VarR','Freq','Length','Gene')) %>%
                 {if(dim(.)[1]>0) mutate(.,Insindex=0,Ref='_',Allel=Type,Type=str_to_title(Type),Subst=" ",GeneName='-', Product=" ",Freq=Freq*100,Qual20=RefR+VarR) %>%
                 select(`#Pos`=Start,Insindex,Ref,Type,Allel,Subst,Gene,GeneName,Product,Freq,Qual20)})->a}
         a%>%bind_rows(filter(unique(a%>%filter(Type != 'SNP') %>% arrange(Type, '#Pos') %>% add_count(across(everything()))) %>% ungroup() %>% mutate(Allel= case_when(n %% 3!=0 ~ 'LOF', TRUE ~as.character(Type))), Allel=='LOF'))->a
