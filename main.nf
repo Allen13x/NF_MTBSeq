@@ -177,7 +177,9 @@ delly=deletion.map{id,file -> file}
 delly=delly.collect()
 OUT_DEL(delly)
 var_del=var.join(deletion,by:0)
-var_del.view()
+//var_del.view()
+MUT_CORRECTION(var_del)
+
 }
 else{
 MUT_CORRECTION(var)
