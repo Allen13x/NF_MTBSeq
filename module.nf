@@ -642,12 +642,10 @@ for (i in l){
     #%>% write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
 
 
-print(s)
-print(s)
-print(s)
-  if (file.exists(paste(s,'.dels',sep=''))) {
+print(${replicateId})
+  if (file.exists(paste(${replicateId},'.dels',sep=''))) {
 
-    a %>% bind_rows(read_delim(paste(s,'.dels',sep=''),show_col_types = FALSE,delim=';',
+    a %>% bind_rows(read_delim(paste(${replicateId},'.dels',sep=''),show_col_types = FALSE,delim=';',
                          col_names = c('Start','End',Type,'Ref','RefR','VarR','Freq','Length','Gene')) %>%
                 {if(dim(.)[1]>0) mutate(.,Insindex=0,Ref='_',Allel=Type,Type=str_to_title(Type),Subst=" ",GeneName='-', Product=" ",Freq=Freq*100,Qual20=RefR+VarR) %>%
                 select(`#Pos`=Start,Insindex,Ref,Type,Allel,Subst,Gene,GeneName,Product,Freq,Qual20)})->a}
