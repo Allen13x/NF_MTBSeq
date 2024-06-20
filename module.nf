@@ -571,7 +571,7 @@ memory "20GB"
 tag "$replicateId"
 publishDir "Called", mode:'copy', pattern: "*corrected.tab"
 input:
-	tuple val(replicateId), path(var), path(dels, optional: true)
+	tuple val(replicateId), path(var), path(dels)
 output:
 	tuple val(replicateId), path('*corrected.tab')
 
