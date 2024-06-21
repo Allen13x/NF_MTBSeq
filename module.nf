@@ -564,6 +564,109 @@ chmod 666 GB_cov.csv
 }
 
 
+process MUT_CORRECTION_DEL {
+cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
+memory "20GB"
+tag "$replicateId"
+publishDir "Called", mode:'copy', pattern: "*corrected.tab"
+input:
+	tuple val(replicateId), path(var), path(del)
+output:
+	tuple val(replicateId), path('*corrected.tab')
+
+script:
+"""
+#!/usr/bin/env Rscript
+
+library(tidyverse)
+library(Biostrings)
+
+
+
+l=list.files()
+
+
+
+l<-l[str_detect(l,'variants_cf1_cr1_fr5_ph1_outmode001.tab\$')]
+
+for (i in l){
+ print(i)
+  s=str_extract(i,'[^_]*_[^_]*')
+
+
+  read_delim(i,delim='\\t',show_col_types = FALSE) %>%
+        mutate(across(c('#Pos','Insindex','CovFor','CovRev','Qual20','Freq','Cov'),as.numeric),
+               across(-c('#Pos','Insindex','CovFor','CovRev','Qual20','Freq','Cov'),as.character)) %>%
+        filter(Subst!=' ',Type=='SNP') %>%
+    extract(Subst,c('refA','pA','varA','codR','cV1','cV2','cV3'),'([A-z]*)([0-9]*)([A-z]*) \\\\((.*)/(.)(.)(.)\\\\)') %>%
+    group_by(Gene,pA) %>%
+    filter(n()>1,sd(Freq)<15) %>%
+    mutate(across(starts_with('cV'),function(x){ifelse(sum(LETTERS%in%x)>0,x[x%in%LETTERS],x)})) %>%
+    unite('codV',cV1:cV3,sep='') %>%
+    {if(dim(.)[1]>0) mutate(.,varA=plyr::mapvalues(as.character(translate(DNAString(codV[1]))),from = names(AMINO_ACID_CODE),to=AMINO_ACID_CODE,warn_missing = F)) else
+            mutate(.,varA='A')}%>%
+    arrange(`#Pos`) %>%
+    mutate(Ref=ifelse(n()==2 &max(diff(`#Pos`))==2,codR,(str_c(Ref,collapse=''))),
+           Allel=ifelse(n()==2 &max(diff(`#Pos`))==2,codV,(str_c(Allel,collapse='')))#,
+           #`#Pos`=str_c(`#Pos`,collapse=',')
+    ) %>%
+    mutate(across(c('Ref','Allel'),function(x){ifelse(str_detect(Gene,'c'),as.character(reverseComplement(DNAString(x[1]))),x[1])})) %>%
+    unite('Subst',refA,pA,varA,sep='') %>% mutate(Subst=paste(Subst,' (',codR,'/',codV,')',sep='')) %>% select(-codR,-codV) %>%
+    mutate(across(where(is.logical),function(x){x=as.character(x)})) %>%
+    rbind(read_delim(i,delim='\\t',show_col_types = FALSE) %>%
+                mutate(across(c('#Pos','Insindex','CovFor','CovRev','Qual20','Freq','Cov'),as.numeric),
+                       across(-c('#Pos','Insindex','CovFor','CovRev','Qual20','Freq','Cov'),as.character))%>%
+        filter(Subst!=' ',Type=='SNP') %>%
+            extract(Subst,c('refA','pA','varA','codR','cV1','cV2','cV3'),'([A-z]*)([0-9]*)([A-z]*) \\\\((.*)/(.)(.)(.)\\\\)') %>%
+            group_by(Gene,pA) %>%
+            filter(n()<2|sd(Freq)>=15) %>%  unite('codV',cV1:cV3,sep='') %>%
+            unite('Subst',refA,pA,varA,sep='') %>% mutate(Subst=paste(Subst,' (',codR,'/',codV,')',sep='')) %>%
+            #mutate(`#Pos`=as.character(`#Pos`)) %>%
+            select(-codR,-codV),
+          read_delim(i,delim='\\t',show_col_types = FALSE) %>%
+                        mutate(across(c('#Pos','Insindex','CovFor','CovRev','Qual20','Freq','Cov'),as.numeric),
+                               across(-c('#Pos','Insindex','CovFor','CovRev','Qual20','Freq','Cov'),as.character))%>%
+            #mutate(`#Pos`=as.character(`#Pos`)) %>%
+            filter(Subst==' ',Type=='SNP'),
+          read_delim(i,delim='\\t',show_col_types = FALSE) %>%
+                        mutate(across(c('#Pos','Insindex','CovFor','CovRev','Qual20','Freq','Cov'),as.numeric),
+                               across(-c('#Pos','Insindex','CovFor','CovRev','Qual20','Freq','Cov'),as.character))%>%
+        filter(Type!='SNP') %>% arrange(Type,`#Pos`) %>%
+            group_by(Type) %>%
+            mutate(p=cumsum(c(1,diff(`#Pos`)>1))) %>%
+            group_by(Type,Subst,Gene,GeneName,Product,ResistanceSNP,PhyloSNP,InterestingRegion,p) %>%
+            summarise(`#Pos`=min(`#Pos`),Insindex=0,Ref='_',Allel=str_to_upper(Type),across(CovFor:Cov,mean)) %>% arrange(Type,p) %>% ungroup() %>%
+            select(-p)
+    ) ->a
+    #%>% write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
+
+
+
+  if (file.exists(paste("${replicateId}",'.dels',sep=''))) {
+
+    a %>% bind_rows(read_delim(paste("${replicateId}",'.dels',sep=''),show_col_types = FALSE,delim=';',
+                         col_names = c('Start','End','Type','Ref','RefR','VarR','Precision','Freq','Length','Gene'))%>% separate(Length,c('Length','Gene'),sep=';') %>%
+                {if(dim(.)[1]>0) mutate(.,Insindex=0,Ref='_',Allel=Type,Type=str_to_title(Type),Subst=" ",GeneName='-', Product=" ",Freq=Freq*100,Qual20=RefR+VarR) %>%
+                select(`#Pos`=Start,Insindex,Ref,Type,Allel,Subst,Gene,GeneName,Product,Freq,Qual20)})->a}
+        a%>%bind_rows(filter(unique(a%>%filter(Type != 'SNP') %>% arrange(Type, '#Pos') %>% add_count(across(everything()))) %>% ungroup() %>% mutate(Allel= case_when(n %% 3!=0 ~ 'LOF', TRUE ~as.character(Type))), Allel=='LOF'))->a
+  
+  a%>%filter(str_detect(Subst,'^[^_]+[1-9]+_'))%>%
+  mutate(Ref=as.character(ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'_',Ref)),
+        Allel=as.character(ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'STOP',Allel)))->b
+
+   a%>%filter(str_detect(Subst,'^Met1[A-z]+|^Val1[A-z]+')) %>% 
+    filter(!str_detect(Subst,'^(Val1|Met1)(Val|Met)')) %>% 
+    mutate(Ref='START',Allel='STARTLOSS')->c
+  a %>%bind_rows(b)%>%
+  bind_rows(c)%>%
+write_delim(paste(i,'corrected.tab',sep='_'),delim='\\t')
+Sys.chmod(paste(i,'corrected.tab',sep='_'), mode = "0777")
+}
+"""
+}
+
+
 process MUT_CORRECTION {
 cpus 1
 container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
@@ -665,7 +768,6 @@ Sys.chmod(paste(i,'corrected.tab',sep='_'), mode = "0777")
 }
 """
 }
-
 
 process MUT_GATHER{
 cpus 1

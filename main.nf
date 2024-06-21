@@ -53,6 +53,7 @@ include{COLLECT_READS;
 	OUT_DEL;
 	DEPTH;
 	OUT_DEPTH;
+	MUT_CORRECTION_DEL;
 	MUT_CORRECTION;
 	MUT_GATHER;
 	PHARMA;
@@ -176,10 +177,10 @@ delly=deletion.map{id,file -> file}
 //old_del=channel.fromPath('OUTPUT/DELETIONS.*')
 delly=delly.collect()
 OUT_DEL(delly)
-var_del=var.join(deletion,by:0).map{id,file1,file2 -> tuple(id,tuple(file1,file2))}
+var_del=var.join(deletion,by:0)
 var_del.view()
-MUT_CORRECTION(var_del)
-mut=MUT_CORRECTION.out
+MUT_CORRECTION_DEL(var_del)
+mut=MUT_CORRECTION_DEL.out
 old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
 MUT_GATHER(mut)
