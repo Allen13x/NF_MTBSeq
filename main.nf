@@ -178,7 +178,7 @@ delly=deletion.map{id,file -> file}
 delly=delly.collect()
 OUT_DEL(delly)
 var_del=var.join(deletion,by:0)
-var_del.view()
+//var_del.view()
 MUT_CORRECTION_DEL(var_del)
 mut=MUT_CORRECTION_DEL.out
 old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
