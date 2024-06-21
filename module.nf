@@ -279,7 +279,7 @@ input:
         tuple val(replicateId), path(list)
         val(ref)
 output:
-        tuple val(replicateId), path("*tab"), emit: var_low
+        tuple val(replicateId), path("*variants*tab"), emit: var_low
         tuple val(replicateId), path("Called"), emit: VAR_LOW
 script:
 """
