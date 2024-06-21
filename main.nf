@@ -176,7 +176,7 @@ delly=deletion.map{id,file -> file}
 //old_del=channel.fromPath('OUTPUT/DELETIONS.*')
 delly=delly.collect()
 OUT_DEL(delly)
-var_del=var.join(deletion,by:0).map{id,file1,file2 -> tuple(id,tuple(file1.collect(),file2.collect()))}
+var_del=var.join(deletion,by:0).map{id,file1,file2 -> tuple(id,tuple(file1,file2))}
 var_del.view()
 MUT_CORRECTION(var_del)
 mut=MUT_CORRECTION.out
