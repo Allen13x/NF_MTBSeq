@@ -1135,7 +1135,8 @@ read_delim('${WHO}',delim=';') %>%
                                        !if_all(matches('^LEV_1|^LEV_2|^LEV_6|^MXF_1|^MXF_2|^MXF_6'),is.na))~'Pre-XDR',
                                     (!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na)&
                                        !if_all(matches('^INH_1|^INH_2|^INH_6'),is.na))~'MDR',
-                                    (!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na))~'RR')) %>% 
+                                    (!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na))~'RR',
+                                    (!if_all(matches('^INH_1|^INH_2|^INH_6'),is.na))~'HR')) %>% 
   select(ID,starts_with('Interpretation'),matches('\\\\)')) %>% 
   write_delim('res_WHO.csv',delim=';',na='')
   Sys.chmod("res_WHO.csv", mode = "0777")
