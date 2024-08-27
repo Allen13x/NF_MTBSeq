@@ -649,7 +649,7 @@ for (i in l){
                          col_names = c('Start','End','Type','Ref','RefR','VarR','Precision','Freq','Length','Gene'))%>% separate(Length,c('Length','Gene'),sep=';') %>%
                 {if(dim(.)[1]>0) mutate(.,Insindex=0,Ref='_',Allel=Type,Type=str_to_title(Type),Subst=" ",GeneName='-', Product=" ",Freq=Freq*100,Qual20=RefR+VarR) %>%
                 select(`#Pos`=Start,Insindex,Ref,Type,Allel,Subst,Gene,GeneName,Product,Freq,Qual20)})->a}
-        a%>%bind_rows(filter(unique(a%>%filter(Type != 'SNP') %>% arrange(Type, '#Pos') %>% add_count(across(everything()))) %>% ungroup() %>% mutate(Allel= case_when(n %% 3!=0 ~ 'LOF', TRUE ~as.character(Type))), Allel=='LOF'))->a
+        a%>%bind_rows(filter(unique(a%>%filter(Type != 'SNP') %>% arrange(Type, '#Pos') %>% add_count(across(everything()))) %>% ungroup() %>% mutate(Allel= case_when(n %% 3!=0 ~ 'LOF', TRUE ~as.character(Type))), Allel=='LOF'),n=ifelse(is.na(CovFor),'long',n))->a
   
   a%>%filter(str_detect(Subst,'^[^_]+[1-9]+_'))%>%
   mutate(Ref=as.character(ifelse(str_detect(Subst,'^[^_]+[1-9]+_'),'_',Ref)),
