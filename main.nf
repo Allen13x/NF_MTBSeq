@@ -27,6 +27,7 @@ autoMounts = true
 	params.proj='def'
 	params.ascii="$baseDir/REF/ascii_string"
 	params.h=false
+	params.headWHO="$baseDir/REF/Header_WHO.csv"
 
 
 /* 
@@ -92,7 +93,7 @@ if (params.pharma){
 PHARMA(Channel.fromPath('Called/*corrected.tab').collect(),params.tdrug,params.pgene)
 MUT_GATHER(Channel.fromPath('Called/*corrected.tab').collect())
 WHO(MUT_GATHER.out,params.dhead,params.WHO)
-OUT_WHO(WHO.out)
+OUT_WHO(WHO.out,params.headWHO)
 
 }
 else{
@@ -186,7 +187,7 @@ mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
 MUT_GATHER(mut)
 PHARMA(mut,"10",params.pgene)
 WHO(MUT_GATHER.out,params.dhead,params.WHO)
-OUT_WHO(WHO.out)
+OUT_WHO(WHO.out,params.headWHO)
 }
 else{
 MUT_CORRECTION(var)
@@ -197,7 +198,7 @@ mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
 MUT_GATHER(mut)
 PHARMA(mut,"10",params.pgene)
 WHO(MUT_GATHER.out,params.dhead,params.WHO)
-OUT_WHO(WHO.out)
+OUT_WHO(WHO.out,params.headWHO)
 }
 
 if (params.join){

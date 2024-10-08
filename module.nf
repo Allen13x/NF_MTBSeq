@@ -1105,6 +1105,7 @@ publishDir "OUTPUT", mode: 'copy', pattern: 'res_WHO.csv'
 publishDir "OUTPUT", mode: 'copy', pattern: 'res_who_long.csv'
 input:
         path(WHO)
+		path(head)
 output:
         path('res_WHO.csv')
         path('res_who_long.csv')
@@ -1140,7 +1141,8 @@ read_delim('${WHO}',delim=';') %>%
                                        !if_all(matches('^INH_1|^INH_2|^INH_6'),is.na))~'MDR',
                                     (!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na))~'RR',
                                     (!if_all(matches('^INH_1|^INH_2|^INH_6'),is.na))~'HR')) %>% 
-  select(ID,starts_with('Interpretation'),matches('\\\\)')) %>% 
+  select(ID,starts_with('Interpretation'),matches('\\\\)')) ->temp
+  bind_rows('${head}',temp) %>%
   write_delim('res_WHO.csv',delim=';',na='')
   Sys.chmod("res_WHO.csv", mode = "0777")
 
