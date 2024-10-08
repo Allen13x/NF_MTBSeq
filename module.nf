@@ -1142,7 +1142,7 @@ read_delim('${WHO}',delim=';') %>%
                                     (!if_all(matches('^RIF_1|^RIF_2|^RIF_6'),is.na))~'RR',
                                     (!if_all(matches('^INH_1|^INH_2|^INH_6'),is.na))~'HR')) %>% 
   select(ID,starts_with('Interpretation'),matches('\\\\)')) ->temp
-  bind_rows('${head}',temp) %>%
+  bind_rows(read_delim('${head}',delim=';'),temp) %>%
   write_delim('res_WHO.csv',delim=';',na='')
   Sys.chmod("res_WHO.csv", mode = "0777")
 
