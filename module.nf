@@ -611,7 +611,7 @@ for (i in l){
            Allel=ifelse(n()==2 &max(diff(`#Pos`))==2,codV,(str_c(Allel,collapse='')))#,
            #`#Pos`=str_c(`#Pos`,collapse=',')
     ) %>%
-    mutate(across(c('Ref','Allel'),function(x){ifelse(str_detect(Gene,'c'),as.character(reverseComplement(DNAString(x[1]))),x[1])})) %>%
+    #mutate(across(c('Ref','Allel'),function(x){ifelse(str_detect(Gene,'c'),as.character(reverseComplement(DNAString(x[1]))),x[1])})) %>%
     unite('Subst',refA,pA,varA,sep='') %>% mutate(Subst=paste(Subst,' (',codR,'/',codV,')',sep='')) %>% select(-codR,-codV) %>%
     mutate(across(where(is.logical),function(x){x=as.character(x)})) %>%
     rbind(read_delim(i,delim='\\t',show_col_types = FALSE) %>%
@@ -717,7 +717,7 @@ for (i in l){
            Allel=ifelse(n()==2 &max(diff(`#Pos`))==2,codV,(str_c(Allel,collapse='')))#,
            #`#Pos`=str_c(`#Pos`,collapse=',')
     ) %>%
-    mutate(across(c('Ref','Allel'),function(x){ifelse(str_detect(Gene,'c'),as.character(reverseComplement(DNAString(x[1]))),x[1])})) %>%
+    #mutate(across(c('Ref','Allel'),function(x){ifelse(str_detect(Gene,'c'),as.character(reverseComplement(DNAString(x[1]))),x[1])})) %>%
     unite('Subst',refA,pA,varA,sep='') %>% mutate(Subst=paste(Subst,' (',codR,'/',codV,')',sep='')) %>% select(-codR,-codV) %>%
     mutate(across(where(is.logical),function(x){x=as.character(x)})) %>%
     rbind(read_delim(i,delim='\\t',show_col_types = FALSE) %>%
