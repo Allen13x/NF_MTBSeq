@@ -564,6 +564,40 @@ chmod 666 GB_cov.csv
 }
 
 
+process FINAL_OUT {
+cpus 1
+container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'
+memory '10GB'
+publishDir 'OUTPUT', mode: "copy", pattern: "FINAL_OUT.csv"
+input:
+	path(map_strain)
+	path(depth)
+output:
+	path("FINAL_OUT.csv")
+script:
+"""
+#!/usr/bin/env Rscript
+
+library(tidyverse)
+
+m=read_delim('Mapping_Classification.tab')
+g=read_delim('GB_cov.csv') %>% 
+  select(Samples,Genome_Breadth=GB_perc,Genome_Depth=GB)
+
+
+
+m %>% 
+  mutate(across(everything(),function(x){str_remove_all(x,"'")})) %>% 
+  select(Samples=SampleID...1,Map_reads=`Mapped Reads`,Map_reads_perc=`% Mapped Reads`,`Homolka species`:`Beijing quality (easy)`)->m1
+
+
+g %>% left_join(m1) %>% write_delim('FINAL_OUT.csv',delim=';')
+
+Sys.chmod('FINAL_OUT.csv', mode = "0777")
+
+"""
+}
+
 process MUT_CORRECTION_DEL {
 cpus 1
 container 'library://allen13x/mtbseq/nf_mtbseq:1.0.1'

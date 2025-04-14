@@ -59,7 +59,8 @@ include{COLLECT_READS;
 	MUT_GATHER;
 	PHARMA;
 	WHO;
-	OUT_WHO} from "$baseDir/module.nf"
+	OUT_WHO;
+	FINAL_OUT} from "$baseDir/module.nf"
 /* 
  * main pipeline logic
  */
@@ -164,7 +165,7 @@ OUT_DEPTH(depth)
 var=VARIANTS_LOW.out.var_low
 old_var=Channel.fromPath('Called/*variants_cf1*001.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 var=var.concat(old_var).unique{it[0]}
-
+FINAL_OUT(OUT_DEPTH.out,MAP_STRAIN.out)
 
 if (params.extra){
 if (params.SEQ == "ILL"){	
