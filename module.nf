@@ -1072,7 +1072,26 @@ whoG['Allel']=whoG['final_annotation.AlternativeNucleotide'].str.upper()
 whoG['Ref']=whoG['final_annotation.ReferenceNucleotide'].str.upper()
 whoG['common_name']=whoG['final_annotation.Gene'] + '_' + whoG['final_annotation.TentativeHGVSNucleotidicAnnotation']
 
-all_whoG=pd.merge(all,whoG,on=['genome_index','Allel','Ref'])
+
+
+exact=pd.merge(all,whoG[whoG['Allel'] != 'WILDCARD'],on=['genome_index','Allel','Ref'])
+
+non_matched = all[~all.index.isin(exact.index)]
+
+
+non_matched_range = non_matched[
+    non_matched['genome_index'].between(761083, 761160)
+]
+
+wildcard_matches = pd.merge(
+    non_matched_range,
+    whoG[whoG['Allel'] == 'WILDCARD'],
+    on=['genome_index'],
+    how='inner'
+)
+
+all_whoG = pd.concat([exact, wildcard_matches], ignore_index=True)
+
 all_whoG['File'] = all_whoG['File'].astype(str)
 all_whoG.sort_values('File',inplace=True)
 
