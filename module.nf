@@ -1074,21 +1074,21 @@ whoG['common_name']=whoG['final_annotation.Gene'] + '_' + whoG['final_annotation
 
 
 
-exact=pd.merge(all,whoG[whoG['Allel'] != 'WILDCARD'],on=['genome_index','Allel','Ref'])
+# 1) match esatti (no wildcard)
+whoG_no_wc = whoG[(whoG['Allel'] != 'ANY') & (whoG['Ref'] != 'ANY')]
+exact = pd.merge(all, whoG_no_wc, on=['genome_index','Allel','Ref'], how='inner')
 
-non_matched = all[~all.index.isin(exact.index)]
+# 2) anti-join per ottenere le righe di `all` che NON hanno match esatto
+tmp = all.merge(whoG_no_wc, on=['genome_index','Allel','Ref'], how='left', indicator=True)
+non_matched = tmp[tmp['_merge'] == 'left_only'][all.columns]   # prendo solo le colonne originali di `all`
 
+# 3) mantieni solo quelle nel range da riempire con wildcard
+non_matched_range = non_matched[non_matched['genome_index'].between(761083, 761160)]
 
-non_matched_range = non_matched[
-    non_matched['genome_index'].between(761083, 761160)
-]
+# 4) match di quelle con i wildcard (solo su genome_index)
+whoG_wc = whoG[(whoG['Allel'] == 'ANY') & (whoG['Ref'] == 'ANY')]
+wildcard_matches = pd.merge(non_matched_range, whoG_wc, on='genome_index', how='inner')
 
-wildcard_matches = pd.merge(
-    non_matched_range,
-    whoG[whoG['Allel'] == 'WILDCARD'],
-    on=['genome_index'],
-    how='inner'
-)
 
 all_whoG = pd.concat([exact, wildcard_matches], ignore_index=True)
 
@@ -1113,9 +1113,9 @@ Alisubst1=[]
 for i in drugs_conf:
     t = i.split('_')[0]
     A[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File',i]]
-    Asubst[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF','Genome position',i]]
-    Asubst1[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim') | (all_whoG[i]=='3) Uncertain significance')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF','Genome position',i]]
-    Asubst5[t] = all_whoG[(all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Type','Freq','LOF','Genome position',i]]
+    Asubst[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF','Genome position','Subst',i]]
+    Asubst1[t] = all_whoG[((all_whoG[i]=='1) Assoc w R') | (all_whoG[i]=='2) Assoc w R - Interim') | (all_whoG[i]=='3) Uncertain significance')) & (all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Freq','Type','LOF','Genome position','Subst',i]]
+    Asubst5[t] = all_whoG[(all_whoG.Freq>cutoff) & (all_whoG.Qual20>4)][['File','variant','common_name','Type','Freq','LOF','Genome position','Subst',i]]
     Ali.append(A[t])
     Alisubst.append(Asubst[t])
     Alisubst5.append(Asubst5[t])
@@ -1129,9 +1129,14 @@ A5.fillna(0,inplace=True)
 
 A5a=A5.drop_duplicates()
 A5a['variant']=np.where(A5a['variant'].str.contains("lof"),A5a['variant'] + '('+ A5a['Genome position'].astype(str)+':'+ A5a['Type'] + "-" + A5a['LOF'].astype(str) + ')',A5a['variant'])
+A5a['variant'] = np.where(
+    A5a['variant'].str.contains("rrdr"),
+    A5a['variant'] + "_" + A5a['Subst'].str.replace(' .*', '', regex=True),
+    A5a['variant']
+)
 A5a['variant']=np.where(A5a['Freq'] > 75, A5a['variant'],A5a['variant'] + ':' + A5a['Freq'].astype(str))
 
-A5a=A5a.drop(['LOF', 'Type','Genome position'], axis=1)
+A5a=A5a.drop(['LOF', 'Type','Genome position','Subst'], axis=1)
 A5b=A5a.groupby(['File','RIF_Conf_Grade','INH_Conf_Grade', 'EMB_Conf_Grade', 'PZA_Conf_Grade', 'LEV_Conf_Grade',       'MXF_Conf_Grade', 'BDQ_Conf_Grade', 'LZD_Conf_Grade', 'CFZ_Conf_Grade',       'DLM_Conf_Grade', 'AMI_Conf_Grade', 'STM_Conf_Grade', 'ETH_Conf_Grade',       'KAN_Conf_Grade', 'CAP_Conf_Grade'])['variant'].apply(', '.join).reset_index()
 
 
