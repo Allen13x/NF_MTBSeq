@@ -165,7 +165,12 @@ OUT_DEPTH(depth)
 var=VARIANTS_LOW.out.var_low
 old_var=Channel.fromPath('Called/*variants_cf1*001.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 var=var.concat(old_var).unique{it[0]}
+
+if (params.ref == "M._tuberculosis_H37Rv_2015-11-13"){
+
 FINAL_OUT(OUT_DEPTH.out,MAP_STRAIN.out)
+
+}
 
 if (params.extra){
 if (params.SEQ == "ILL"){	
