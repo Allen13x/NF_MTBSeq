@@ -1088,7 +1088,8 @@ non_matched_range = non_matched[non_matched['genome_index'].between(761083, 7611
 # 4) match di quelle con i wildcard (solo su genome_index)
 whoG_wc = whoG[(whoG['Allel'] == 'ANY') & (whoG['Ref'] == 'ANY')]
 wildcard_matches = pd.merge(non_matched_range, whoG_wc, on='genome_index', how='inner')
-
+# 5) Rimuovi sinonime
+wildcard_matches = wildcard_matches[wildcard_matches['SubstClean2'].apply(nsyn3)]
 
 all_whoG = pd.concat([exact, wildcard_matches], ignore_index=True)
 
