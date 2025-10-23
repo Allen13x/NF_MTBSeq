@@ -16,6 +16,8 @@ M.tuberculosis_H37Rv	3986843	3987299	ddn
 M.tuberculosis_H37Rv	3986793	3986843	ddn_ups
 M.tuberculosis_H37Rv	0	1524	dnaA
 M.tuberculosis_H37Rv	4411219	4411532	dnaA_ups
+M.tuberculosis_H37Rv	4235778	4237164	dprE1
+M.tuberculosis_H37Rv	4235677	4235778	dprE1_ups
 M.tuberculosis_H37Rv	2714123	2715332	eis
 M.tuberculosis_H37Rv	2715332	2715415	eis_ups
 M.tuberculosis_H37Rv	4243232	4246517	embA
@@ -56,6 +58,8 @@ M.tuberculosis_H37Rv	1674201	1675011	inhA
 M.tuberculosis_H37Rv	1673389	1674201	inhA_ups
 M.tuberculosis_H37Rv	2153888	2156111	katG
 M.tuberculosis_H37Rv	2156111	2156642	katG_ups
+M.tuberculosis_H37Rv	43561	46471	leuS
+M.tuberculosis_H37Rv	43461	43561	leuS_ups
 M.tuberculosis_H37Rv	3623158	3624910	lpqB
 M.tuberculosis_H37Rv	3624910	3625010	lpqB_ups
 M.tuberculosis_H37Rv	775585	778480	mmpL5
