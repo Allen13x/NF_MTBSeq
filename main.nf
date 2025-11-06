@@ -197,7 +197,7 @@ var_del4=var4.join(deletion,by:0)
 MUT_CORRECTION_DEL(var_del)
 MUT_CORRECTION_DEL_4(var_del4)
 mut=MUT_CORRECTION_DEL.out
-old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+old_mut=Channel.fromPath('Called/1.tab*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
 MUT_GATHER(mut)
 PHARMA(mut,"10",params.pgene)
@@ -208,7 +208,7 @@ else{
 MUT_CORRECTION_4(var4)
 MUT_CORRECTION(var)
 mut=MUT_CORRECTION.out
-old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+old_mut=Channel.fromPath('Called/1.tab*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
 //mut.view()
 MUT_GATHER(mut)
