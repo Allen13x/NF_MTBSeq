@@ -56,6 +56,8 @@ include{COLLECT_READS;
 	OUT_DEPTH;
 	MUT_CORRECTION_DEL;
 	MUT_CORRECTION;
+	MUT_CORRECTION_4;
+	MUT_CORRECTION_DEL_4;
 	MUT_GATHER;
 	PHARMA;
 	WHO;
@@ -166,6 +168,11 @@ var=VARIANTS_LOW.out.var_low
 old_var=Channel.fromPath('Called/*variants_cf1*001.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
 var=var.concat(old_var).unique{it[0]}
 
+var4=VARIANTS.out.var
+old_var4=Channel.fromPath('Called/*variants_cf4*000.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}.groupTuple()
+var4=var4.concat(old_var4).unique{it[0]}
+
+
 if (params.ref == "M._tuberculosis_H37Rv_2015-11-13"){
 
 FINAL_OUT(OUT_DEPTH.out,MAP_STRAIN.out)
@@ -185,8 +192,10 @@ delly=deletion.map{id,file -> file}
 delly=delly.collect()
 OUT_DEL(delly)
 var_del=var.join(deletion,by:0)
+var_del4=var4.join(deletion,by:0)
 //var_del.view()
 MUT_CORRECTION_DEL(var_del)
+MUT_CORRECTION_DEL_4(var_del4)
 mut=MUT_CORRECTION_DEL.out
 old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 mut=mut.concat(old_mut).unique{it[0]}.map{id,file->file}.collect()
@@ -196,6 +205,7 @@ WHO(MUT_GATHER.out,params.dhead,params.WHO)
 OUT_WHO(WHO.out,params.headWHO)
 }
 else{
+MUT_CORRECTION_4(var4)
 MUT_CORRECTION(var)
 mut=MUT_CORRECTION.out
 old_mut=Channel.fromPath('Called/*corrected.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
@@ -209,7 +219,7 @@ OUT_WHO(WHO.out,params.headWHO)
 
 if (params.join){
 call=VARIANTS.out.var
-old_call=Channel.fromPath('Called/*variants_cf4*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
+old_call=Channel.fromPath('Called/*variants_cf4*0.tab').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
 call=call.concat(old_call).unique{it[0]}.map{id,file->file}.collect()
 list=LIST.out.list
 old_list=Channel.fromPath('Position_Tables/*').map{file -> tuple ((file.getSimpleName())- ~/_.*/,file)}
