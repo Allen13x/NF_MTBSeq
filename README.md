@@ -1,4 +1,4 @@
-# NF_TBSEQ
+# NF_MTBSeq
 
 Presenting an enhanced version of the MTBseq pipeline, now implemented in Nextflow. Additional features include the integration of deletion/insertion detection using delly2, breadth coverage analysis for target genes with Mosdepth, and the incorporation of drug resistance pattern detection and interpretation through the utilization of the WHO catalogue as a point of reference (available at: https://www.who.int/publications/i/item/9789240028173).
 
